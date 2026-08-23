@@ -6,8 +6,10 @@
   <title>문멘토 6호선 프로젝트 - 단톡방 페르소나 분석기</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- html2canvas CDN (1장 캡처 다운로드용) -->
+  <!-- html2canvas CDN (고화질 캡처 다운로드) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- Tesseract.js (다중 사진 OCR 판독) -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
@@ -52,7 +54,7 @@
 
       <!-- Text Area Panel -->
       <div id="panel-text" class="space-y-2">
-        <textarea id="chat-input" rows="5" placeholder="카카오톡 대화 내용을 복사해서 붙여넣으세요... (예시 데이터는 '방금 대화방 샘플 불러오기' 클릭)" class="w-full p-3 text-xs sm:text-sm rounded-xl bg-black/40 border border-white/15 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono"></textarea>
+        <textarea id="chat-input" rows="5" placeholder="카톡 대화 내용을 붙여넣으세요. (아무것도 입력하지 않고 분석 실행 시 '6호선 7인방 결과'가 표시됩니다)" class="w-full p-3 text-xs sm:text-sm rounded-xl bg-black/40 border border-white/15 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono"></textarea>
       </div>
 
       <!-- File Upload Panel -->
@@ -71,20 +73,23 @@
         <label class="flex flex-col items-center justify-center border-2 border-dashed border-white/20 rounded-xl p-8 hover:bg-white/5 cursor-pointer">
           <i data-lucide="images" class="w-10 h-10 text-slate-400 mb-2"></i>
           <span class="text-sm font-semibold text-slate-200">대화방 캡처 스크린샷 선택 (최대 15장)</span>
-          <span class="text-xs text-slate-400 mt-1">말투와 맥락이 잘 드러난 이미지를 권장합니다</span>
+          <span class="text-xs text-slate-400 mt-1">OCR 문자 인식을 통해 자동으로 텍스트를 추출합니다</span>
           <input type="file" id="img-file-input" accept="image/*" multiple class="hidden" onchange="handleImgUpload(event)">
         </label>
+        <div id="ocrLoading" class="hidden p-2.5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-center">
+          <p id="ocrStatus" class="text-xs text-amber-300 font-bold animate-pulse">📷 사진 판독 중...</p>
+        </div>
         <div id="image-preview" class="flex flex-wrap gap-2"></div>
       </div>
 
       <!-- Control Buttons -->
       <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
         <button onclick="loadSampleData()" class="text-xs font-semibold text-amber-300 hover:text-amber-200 flex items-center gap-1">
-          <i data-lucide="sparkles" class="w-4 h-4"></i> 6호선 단톡방 원본 결과 불러오기
+          <i data-lucide="sparkles" class="w-4 h-4"></i> 6호선 7인방 원본 불러오기
         </button>
         <div class="flex gap-2">
           <button onclick="clearAll()" class="px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-white/10 rounded-xl">초기화</button>
-          <button onclick="analyzeChat()" class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 text-slate-950 text-sm font-bold rounded-xl shadow-lg shadow-amber-500/20 transition flex items-center gap-2">
+          <button onclick="analyzeChat()" class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 text-slate-950 text-sm font-bold rounded-xl shadow-lg shadow-amber-500/20 transition flex items-center gap-2 active:scale-95">
             <i data-lucide="play" class="w-4 h-4"></i> 페르소나 분석 실행
           </button>
         </div>
@@ -153,7 +158,7 @@
 
         <!-- Footer watermark on capture -->
         <div class="text-center pt-2">
-          <p class="text-[11px] font-semibold text-amber-400/80">✨ 6호선 프로젝트 멤버 맞춤 페르소나 완료 ✨</p>
+          <p class="text-[11px] font-semibold text-amber-400/80">✨ 맞춤 페르소나 분석 완료 ✨</p>
         </div>
       </div>
 
@@ -161,7 +166,7 @@
 
   </div>
 
-  <!-- 모바일 사진 저장 모달 (아이폰/사파리 완벽 대응) -->
+  <!-- 모바일 사진 저장 모달 -->
   <div id="imageModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4 z-50">
     <div class="bg-slate-900 border border-slate-700 rounded-3xl p-5 max-w-sm w-full flex flex-col items-center shadow-2xl">
       <div class="w-full flex justify-between items-center mb-3">
@@ -184,8 +189,8 @@
     let currentTheme = 'animal';
     let currentView = 'card';
 
-    // 원본 데이터 완벽 유지
-    const personaData = [
+    // 1. 기본 7인방 원본 데이터
+    const defaultPersonaData = [
       {
         name: "최종관 (테스)",
         role: "스마트 기획 사령관",
@@ -251,6 +256,61 @@
       }
     ];
 
+    // 현재 화면에 렌더링될 액티브 데이터
+    let currentPersonaData = [...defaultPersonaData];
+
+    // 2. 동적 분석 템플릿 풀 (새로운 단톡방 분석 시 사용)
+    const personaPool = [
+      {
+        role: "스마트 기획 사령관",
+        animal: { tag: "비버 / 리트리버", desc: "묵묵하고 꼼꼼하게 실무와 툴 세팅, 팀 일정까지 완벽히 챙기는 완성형 살림꾼" },
+        car: { tag: "포르쉐 타이칸 / 테슬라 S", desc: "정밀한 분석력 위에 첨단 테크 툴을 유연하게 결합한 고효율 올라운더" },
+        sns: { tag: "GitHub / Discord", desc: "체크리스트와 시스템을 직접 구축하고 단톡방을 실질적으로 굴려가는 테크 빌더" },
+        subway: { tag: "DMC역", desc: "트리플 환승과 첨단 IT 테크의 핵심 거점. 스마트하고 기동력 넘치는 기획 사령탑" },
+        snack: { tag: "스페셜 참치김밥", desc: "속재료가 꽉 찬 올인원 메뉴! 든든하게 중심을 지켜주는 반장 같은 존재" }
+      },
+      {
+        role: "추진력 넘치는 리더",
+        animal: { tag: "사자 / 부엉이", desc: "큰 그림을 보고 통찰력과 명확한 방향성을 제시하며 대화의 판을 이끄는 리더" },
+        car: { tag: "메르세데스-벤츠 S클래스", desc: "묵직한 존재감과 안정감으로 전체적인 방향을 리드하는 플래그십 리더" },
+        sns: { tag: "링크드인 (LinkedIn)", desc: "전문적인 식견과 인사이트로 사람들을 모으고 방향성을 잡아주는 프로페셔널 허브" },
+        subway: { tag: "공덕역", desc: "사통팔달 모든 노선을 흡수하는 쿼드러플 환승 허브. 묵직한 내공으로 팀원을 이끄는 중심축" },
+        snack: { tag: "오리지널 쌀떡볶이", desc: "분식집의 뼈대이자 중심! 묵직하고 깊은 맛으로 전체 판을 이끄는 메인 요리" }
+      },
+      {
+        role: "폭풍 소통 에너자이저",
+        animal: { tag: "보더콜리 / 미어캣", desc: "지치지 않는 에너지와 호기심, 실시간 정보 생성과 톡톡 튀는 대화 순발력" },
+        car: { tag: "테슬라 모델 3 퍼포먼스", desc: "폭발적인 반응 속도, 넘치는 에너지와 빠른 정보 처리 능력을 갖춘 드라이버" },
+        sns: { tag: "스레드 / X (트위터)", desc: "실시간 정보력 최강! 트렌디한 짤과 소식을 끊임없이 공유하는 폭풍 공유형" },
+        subway: { tag: "합정 / 이태원역", desc: "24시간 잠들지 않는 트렌드의 발상지. 쉴 새 없이 아이디어가 샘솟는 핫플레이스" },
+        snack: { tag: "마라 떡볶이 / 치즈 라볶이", desc: "톡 쏘는 강렬한 텐션과 넘치는 에너지! 도파민을 뿜어내는 분위기 메이커" }
+      },
+      {
+        role: "쿨한 핵심 요약 실용파",
+        animal: { tag: "고양이 / 여우", desc: "군더더기 없이 쿨하고 솔직한 화법, 복잡한 과정 없이 핵심만 짚는 실용주의자" },
+        car: { tag: "미니 쿠퍼 JCW", desc: "미니멀하고 쿨한 화법, 핵심만 날카롭고 민첩하게 치고 빠지는 가벼운 기동력" },
+        sns: { tag: "유튜브 쇼츠 / 틱톡", desc: "긴 설명 필요 없이 핵심만 빠르게 짚는 쿨하고 군더더기 없는 숏폼 실용파" },
+        subway: { tag: "삼각지역", desc: "군더더기 없는 도심 환승 쾌속선. 복잡한 서론 없이 핵심만 짚고 빠르게 전진" },
+        snack: { tag: "바삭 튀김 (김말이/오징어)", desc: "군더더기 없이 겉바속촉 깔끔한 매력! 국물에 찍어 핵심만 즐기는 쿨한 존재" }
+      },
+      {
+        role: "따뜻한 감성 힐러",
+        animal: { tag: "코알라 / 캥거루", desc: "바쁜 일상 속에서도 따뜻한 말 한마디로 사람들을 편안하게 품어주는 힐러" },
+        car: { tag: "현대 팰리세이드", desc: "따뜻한 감성과 배려로 멤버들을 편안하고 넉넉하게 품어주는 패밀리 리무진" },
+        sns: { tag: "네이버 밴드 / 브런치", desc: "사람들의 이야기를 경청하며 편안한 유대감과 연륜을 전해주는 감성 라운지" },
+        subway: { tag: "월드컵경기장역", desc: "도심 속 여유와 따뜻한 쉼을 주는 평화의 공원처럼 넉넉하고 편안한 존재" },
+        snack: { tag: "따끈한 꼬치어묵 & 국물", desc: "속을 포근하게 녹여주는 깊은 육수처럼, 팀원들을 따뜻하게 품어주는 힐러" }
+      },
+      {
+        role: "묵묵한 몰입형 연구파",
+        animal: { tag: "꿀벌 / 부엉이", desc: "맡은 과제와 역할을 묵묵하고 끈기 있게 완주해내는 높은 책임감" },
+        car: { tag: "도요타 프리우스", desc: "묵묵하고 끈기 있게 목적지까지 완주하는 최고의 연비와 성실함" },
+        sns: { tag: "미디엄 / 벨로그", desc: "묵묵히 자기 몫의 자료와 아카이빙을 완성해내는 성실한 딥다이브 연구파" },
+        subway: { tag: "안암 / 고려대역", desc: "학구열과 끈기가 돋보이는 연구의 메카. 묵묵하고 깊이 있게 파고드는 분석파" },
+        snack: { tag: "속이 꽉 찬 찰순대", desc: "화려함보다는 묵묵하고 알찬 내공! 뚝심 있게 자리를 지키는 진국 메뉴" }
+      }
+    ];
+
     const themeTitles = {
       animal: "🦁 멤버별 동물 페르소나",
       car: "🚗 멤버별 자동차 페르소나",
@@ -270,12 +330,18 @@
 
     function loadSampleData() {
       switchInputTab('text');
-      document.getElementById('chat-input').value = "[문멘토 6호선 프로젝트 분석 완료]\n최종관(테스), 문멘토, 문멘토님 여왕님, 효니(연혜), 이주연(으쌰), W.S.H(초록그린), 인영(로로)";
-      analyzeChat();
+      document.getElementById('chat-input').value = '';
+      currentPersonaData = [...defaultPersonaData];
+      renderResults();
+      document.getElementById('result-section').scrollIntoView({ behavior: 'smooth' });
     }
 
     function clearAll() {
       document.getElementById('chat-input').value = '';
+      document.getElementById('file-name').classList.add('hidden');
+      document.getElementById('image-preview').innerHTML = '';
+      currentPersonaData = [...defaultPersonaData];
+      renderResults();
     }
 
     function handleTxtUpload(e) {
@@ -290,8 +356,10 @@
       reader.readAsText(file, 'UTF-8');
     }
 
-    function handleImgUpload(e) {
+    async function handleImgUpload(e) {
       const files = Array.from(e.target.files).slice(0, 15);
+      if (files.length === 0) return;
+
       const container = document.getElementById('image-preview');
       container.innerHTML = '';
       files.forEach(f => {
@@ -300,9 +368,98 @@
         img.className = 'w-16 h-16 object-cover rounded-lg border border-white/20';
         container.appendChild(img);
       });
+
+      const loadingBox = document.getElementById('ocrLoading');
+      const statusText = document.getElementById('ocrStatus');
+      loadingBox.classList.remove('hidden');
+
+      let combinedText = document.getElementById('chat-input').value;
+      const total = files.length;
+
+      try {
+        const worker = await Tesseract.createWorker('kor+eng');
+        for (let i = 0; i < total; i++) {
+          statusText.innerText = `📷 사진 분석 중... (${i + 1}/${total}장 완료)`;
+          const ret = await worker.recognize(files[i]);
+          combinedText += `\n${ret.data.text}`;
+        }
+        await worker.terminate();
+
+        document.getElementById('chat-input').value = combinedText;
+        loadingBox.classList.add('hidden');
+        alert(`총 ${total}장의 사진에서 대화 텍스트를 모두 읽어왔습니다!`);
+      } catch (err) {
+        console.error(err);
+        loadingBox.classList.add('hidden');
+        alert('사진 인식 중 오류가 발생했습니다.');
+      }
     }
 
+    // 핵심: 대화 텍스트 존재 여부에 따라 분기 실행
     function analyzeChat() {
+      const text = document.getElementById('chat-input').value.trim();
+
+      // [분기 1] 입력된 대화가 없으면 -> 기본 7인방 원본 표시
+      if (!text) {
+        currentPersonaData = [...defaultPersonaData];
+        renderResults();
+        document.getElementById('result-section').scrollIntoView({ behavior: 'smooth' });
+        return;
+      }
+
+      // [분기 2] 실제 텍스트가 있으면 -> 대화 내용 파싱 및 실제 분석
+      const lines = text.split('\n');
+      const userCounts = {};
+      const regex = /\[(.*?)\]\s+\[(.*?)\]\s+(.*)/;
+
+      lines.forEach(line => {
+        const match = line.match(regex);
+        if (match) {
+          const user = match[1].trim();
+          userCounts[user] = (userCounts[user] || 0) + 1;
+        }
+      });
+
+      const userList = Object.keys(userCounts);
+
+      // 카톡 정규식 포맷이 아니더라도 쉼표/줄바꿈 등으로 이름이 나열된 경우 대비
+      if (userList.length === 0) {
+        const words = text.split(/[\n,]+/).map(w => w.trim()).filter(w => w.length >= 2 && w.length <= 10);
+        const uniqueWords = [...new Set(words)].slice(0, 8);
+        
+        if (uniqueWords.length > 0) {
+          currentPersonaData = uniqueWords.map((name, i) => {
+            const p = personaPool[i % personaPool.length];
+            return {
+              name: name,
+              role: p.role,
+              animal: p.animal,
+              car: p.car,
+              sns: p.sns,
+              subway: p.subway,
+              snack: p.snack
+            };
+          });
+        } else {
+          currentPersonaData = [...defaultPersonaData];
+        }
+      } else {
+        // 실제 추출된 멤버들로 동적 페르소나 카드 생성
+        currentPersonaData = userList.map((user, i) => {
+          const p = personaPool[i % personaPool.length];
+          const count = userCounts[user];
+          return {
+            name: `${user}`,
+            role: `${p.role} (발언 ${count}회)`,
+            animal: p.animal,
+            car: p.car,
+            sns: p.sns,
+            subway: p.subway,
+            snack: p.snack
+          };
+        });
+      }
+
       renderResults();
       document.getElementById('result-section').scrollIntoView({ behavior: 'smooth' });
     }
@@ -339,7 +496,7 @@
       cardContainer.innerHTML = '';
       tableBody.innerHTML = '';
 
-      personaData.forEach((item, idx) => {
+      currentPersonaData.forEach((item, idx) => {
         const themeInfo = item[currentTheme];
 
         const card = document.createElement('div');
@@ -367,7 +524,6 @@
       });
     }
 
-    // 모바일/아이폰 완벽 대응 캡처 함수
     async function downloadCapture() {
       const btn = document.getElementById('captureBtn');
       const originalText = btn.innerHTML;
@@ -380,7 +536,7 @@
         const imageUri = canvas.toDataURL('image/png');
 
         const link = document.createElement('a');
-        link.download = `문멘토_6호선_페르소나_${currentTheme}.png`;
+        link.download = `문멘토_페르소나_${currentTheme}.png`;
         link.href = imageUri;
         document.body.appendChild(link);
         link.click();
@@ -407,7 +563,7 @@
 
     function copyToClipboard() {
       let text = `[${themeTitles[currentTheme]}]\n“스터디의 메인 주제였던 6호선 주요 역세권의 입지적·공간적 특징에 빗댄 멤버별 매칭입니다.”\n\n`;
-      personaData.forEach(item => {
+      currentPersonaData.forEach(item => {
         text += `▪ ${item.name} (${item.role})\n→ ${item[currentTheme].tag} : ${item[currentTheme].desc}\n\n`;
       });
       navigator.clipboard.writeText(text).then(() => {
