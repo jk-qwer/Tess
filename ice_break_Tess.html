@@ -1,229 +1,167 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>문멘토 6호선 프로젝트 - 종합 대화 분석기</title>
-  
-  <!-- Tailwind CSS -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>문멘토 6호선 프로젝트 - 단톡방 페르소나 분석기</title>
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- html2canvas (고화질 캡처 라이브러리) -->
+  <!-- html2canvas CDN (1장 캡처 다운로드용) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <!-- Tesseract.js (다중 사진 OCR 라이브러리) -->
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <!-- Pretendard 폰트 -->
-  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    body {
-      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-      -webkit-tap-highlight-color: transparent;
+    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap');
+    body { 
+      font-family: 'Pretendard', sans-serif;
       /* 서울 롯데타워 야경 감성 배경 */
-      background: linear-gradient(180deg, rgba(15, 23, 42, 0.85) 0%, rgba(10, 15, 29, 0.92) 100%),
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.88) 0%, rgba(10, 15, 29, 0.94) 100%),
                   url('https://images.unsplash.com/photo-1578637387939-43c525550085?auto=format&fit=crop&w=1200&q=80') no-repeat center center fixed;
       background-size: cover;
     }
-    
-    .glass-box {
+    .glass-card {
       background: rgba(255, 255, 255, 0.08);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
       border: 1px solid rgba(255, 255, 255, 0.15);
     }
-
-    .gold-gradient {
-      background: linear-gradient(135deg, #FDE68A 0%, #D97706 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
   </style>
 </head>
+<body class="text-slate-100 min-h-screen py-8 px-4 sm:px-6 lg:px-8">
 
-<body class="min-h-screen text-slate-100 flex flex-col items-center justify-between p-4 selection:bg-amber-500 selection:text-white">
+  <div class="max-w-4xl mx-auto space-y-6">
 
-  <!-- 헤더 -->
-  <header class="w-full max-w-lg pt-3 pb-2 text-center">
-    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px] font-semibold tracking-wider mb-2">
-      🏛️ MUN MENTOR REAL ESTATE
+    <!-- Header -->
+    <header class="text-center space-y-2">
+      <div class="inline-flex items-center gap-2 px-3 py-1 bg-amber-500/10 border border-amber-500/30 text-amber-300 rounded-full text-xs font-bold tracking-wide">
+        <span>🏛️ MUN MENTOR 6호선 프로젝트</span>
+      </div>
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">단톡방 페르소나 분석기</h1>
+      <p class="text-xs sm:text-sm text-slate-300">“스터디의 메인 주제였던 6호선 주요 역세권의 입지적·공간적 특징에 빗댄 멤버별 매칭입니다.”</p>
+    </header>
+
+    <!-- 1. Input Section -->
+    <div class="glass-card rounded-2xl shadow-xl p-5 sm:p-6 space-y-4">
+      
+      <!-- Input Tabs -->
+      <div class="flex border-b border-white/10 gap-4 text-sm font-semibold">
+        <button id="tab-text" onclick="switchInputTab('text')" class="pb-3 text-amber-400 border-b-2 border-amber-400">직접 입력 / 복사붙여넣기</button>
+        <button id="tab-file" onclick="switchInputTab('file')" class="pb-3 text-slate-400 hover:text-slate-200 border-b-2 border-transparent">.txt 파일 업로드</button>
+        <button id="tab-image" onclick="switchInputTab('image')" class="pb-3 text-slate-400 hover:text-slate-200 border-b-2 border-transparent">캡처 사진 업로드 (최대 15장)</button>
+      </div>
+
+      <!-- Text Area Panel -->
+      <div id="panel-text" class="space-y-2">
+        <textarea id="chat-input" rows="5" placeholder="카카오톡 대화 내용을 복사해서 붙여넣으세요... (예시 데이터는 '방금 대화방 샘플 불러오기' 클릭)" class="w-full p-3 text-xs sm:text-sm rounded-xl bg-black/40 border border-white/15 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono"></textarea>
+      </div>
+
+      <!-- File Upload Panel -->
+      <div id="panel-file" class="hidden">
+        <label class="flex flex-col items-center justify-center border-2 border-dashed border-white/20 rounded-xl p-8 hover:bg-white/5 cursor-pointer">
+          <i data-lucide="file-text" class="w-10 h-10 text-slate-400 mb-2"></i>
+          <span class="text-sm font-semibold text-slate-200">카카오톡 '대화 내보내기' .txt 파일 선택</span>
+          <span class="text-xs text-slate-400 mt-1">UTF-8 형식 지원</span>
+          <input type="file" id="txt-file-input" accept=".txt" class="hidden" onchange="handleTxtUpload(event)">
+        </label>
+        <p id="file-name" class="text-xs text-amber-400 font-semibold mt-2 hidden"></p>
+      </div>
+
+      <!-- Image Upload Panel -->
+      <div id="panel-image" class="hidden space-y-3">
+        <label class="flex flex-col items-center justify-center border-2 border-dashed border-white/20 rounded-xl p-8 hover:bg-white/5 cursor-pointer">
+          <i data-lucide="images" class="w-10 h-10 text-slate-400 mb-2"></i>
+          <span class="text-sm font-semibold text-slate-200">대화방 캡처 스크린샷 선택 (최대 15장)</span>
+          <span class="text-xs text-slate-400 mt-1">말투와 맥락이 잘 드러난 이미지를 권장합니다</span>
+          <input type="file" id="img-file-input" accept="image/*" multiple class="hidden" onchange="handleImgUpload(event)">
+        </label>
+        <div id="image-preview" class="flex flex-wrap gap-2"></div>
+      </div>
+
+      <!-- Control Buttons -->
+      <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+        <button onclick="loadSampleData()" class="text-xs font-semibold text-amber-300 hover:text-amber-200 flex items-center gap-1">
+          <i data-lucide="sparkles" class="w-4 h-4"></i> 6호선 단톡방 원본 결과 불러오기
+        </button>
+        <div class="flex gap-2">
+          <button onclick="clearAll()" class="px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-white/10 rounded-xl">초기화</button>
+          <button onclick="analyzeChat()" class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 text-slate-950 text-sm font-bold rounded-xl shadow-lg shadow-amber-500/20 transition flex items-center gap-2">
+            <i data-lucide="play" class="w-4 h-4"></i> 페르소나 분석 실행
+          </button>
+        </div>
+      </div>
+
     </div>
-    <h1 class="text-xl font-black text-white">
-      6호선 프로젝트 <span class="gold-gradient">대화 분석 & 페르소나</span>
-    </h1>
-    <p class="text-xs text-slate-300 mt-1">부동산 · 자동차 · 동물상 · SNS 종합 리포트</p>
-  </header>
 
-  <!-- 메인 영역 -->
-  <main class="w-full max-w-lg space-y-4 my-auto py-2">
-
-    <!-- 1단계: 대화 입력 섹션 (복붙 / 텍스트파일 / 사진 다중 업로드) -->
-    <section id="inputSection" class="glass-box rounded-3xl p-5 shadow-2xl">
-      <div class="flex items-center justify-between mb-2">
-        <label class="text-xs font-bold text-amber-300">💬 카카오톡 대화 내용 입력</label>
-        <span class="text-[11px] text-slate-400">사진(다중) / 텍스트 / 파일</span>
-      </div>
+    <!-- 2. Result Section -->
+    <div id="result-section" class="space-y-4">
       
-      <textarea id="chatInput" rows="5" placeholder="카톡 대화 내용을 붙여넣거나 아래 버튼으로 사진(여러 장 가능)/파일을 업로드하세요..." class="w-full p-3 bg-black/40 border border-white/10 rounded-2xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-400 resize-none"></textarea>
-
-      <!-- OCR 진행 상황 표시 바 -->
-      <div id="ocrLoading" class="hidden my-2 p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-center">
-        <p id="ocrStatus" class="text-xs text-amber-300 font-bold animate-pulse">📷 사진 판독 준비 중...</p>
-      </div>
-
-      <!-- 입력 업로드 버튼 그룹 -->
-      <div class="grid grid-cols-2 gap-2 mt-3">
-        <label class="py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/15 text-center text-xs font-semibold cursor-pointer border border-white/10 transition truncate">
-          📄 .txt 파일 불러오기
-          <input type="file" id="fileInput" accept=".txt" class="hidden" onchange="handleTextFileUpload(event)" />
-        </label>
-
-        <label class="py-2.5 px-3 rounded-xl bg-blue-600/30 hover:bg-blue-600/40 text-center text-xs font-semibold cursor-pointer border border-blue-400/30 text-blue-200 transition truncate">
-          📷 캡처 사진 올리기 (다중)
-          <input type="file" id="imageInput" accept="image/*" multiple class="hidden" onchange="handleMultipleImageUpload(event)" />
-        </label>
-      </div>
-
-      <!-- 분석 버튼 -->
-      <button onclick="analyzeChat()" class="w-full mt-3 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 active:scale-95 transition">
-        🚀 종합 대화 분석 시작하기
-      </button>
-    </section>
-
-    <!-- 2단계: 결과 섹션 -->
-    <section id="resultSection" class="hidden space-y-4">
-      
-      <!-- 보기 전환: 개인별 요약 카드 vs 전체 비교 표 -->
-      <div class="flex p-1 bg-black/40 rounded-2xl border border-white/10">
-        <button id="viewCardBtn" onclick="switchView('card')" class="flex-1 py-2 rounded-xl text-xs font-bold transition bg-amber-500 text-slate-950">
-          👤 개인별 요약 카드
-        </button>
-        <button id="viewTableBtn" onclick="switchView('table')" class="flex-1 py-2 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white">
-          📊 전체 내용 비교표
-        </button>
-      </div>
-
-      <!-- [A] 개인별 요약 카드 뷰 -->
-      <div id="cardViewContainer" class="space-y-4">
+      <!-- Theme Selection Bar -->
+      <div class="flex flex-wrap items-center justify-between gap-3 glass-card p-3 rounded-2xl">
+        <div class="flex flex-wrap gap-1.5" id="theme-buttons">
+          <button onclick="setTheme('animal')" id="btn-animal" class="theme-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500 text-slate-950">🦁 동물</button>
+          <button onclick="setTheme('car')" id="btn-car" class="theme-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-white/10 text-slate-300 hover:bg-white/20">🚗 자동차</button>
+          <button onclick="setTheme('sns')" id="btn-sns" class="theme-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-white/10 text-slate-300 hover:bg-white/20">📱 SNS</button>
+          <button onclick="setTheme('subway')" id="btn-subway" class="theme-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-white/10 text-slate-300 hover:bg-white/20">🚇 6호선 역</button>
+          <button onclick="setTheme('snack')" id="btn-snack" class="theme-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-white/10 text-slate-300 hover:bg-white/20">🍢 분식 메뉴</button>
+        </div>
         
-        <!-- 멤버 선택 탭 -->
-        <div class="glass-box rounded-2xl p-3">
-          <label class="text-[11px] font-bold text-slate-300 block mb-2">👤 멤버 선택</label>
-          <div id="userTabs" class="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none"></div>
-        </div>
-
-        <!-- 4가지 성향 모드 전환 탭 (부동산/자동차/동물상/SNS) -->
-        <div class="grid grid-cols-4 gap-1.5">
-          <button id="tabModeRealEstate" onclick="switchMode('realestate')" class="py-2 rounded-xl text-xs font-bold transition bg-amber-500 text-slate-950 shadow-md">
-            🏛️ 부동산
+        <!-- View Toggle & Export -->
+        <div class="flex items-center gap-2">
+          <div class="bg-black/40 p-0.5 rounded-lg flex text-xs border border-white/10">
+            <button onclick="setView('card')" id="view-card-btn" class="px-2.5 py-1 rounded-md font-bold bg-amber-500 text-slate-950 shadow-sm">카드</button>
+            <button onclick="setView('table')" id="view-table-btn" class="px-2.5 py-1 rounded-md font-bold text-slate-400">표</button>
+          </div>
+          <button onclick="downloadCapture()" id="captureBtn" class="p-2 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 rounded-lg hover:from-amber-600 text-xs font-bold flex items-center gap-1 shadow-sm" title="인스타/공유용 1장 이미지 다운로드">
+            <i data-lucide="camera" class="w-3.5 h-3.5"></i> 1장 캡처
           </button>
-          <button id="tabModeCar" onclick="switchMode('car')" class="py-2 rounded-xl text-xs font-semibold transition bg-white/10 text-slate-300 hover:bg-white/20">
-            🏎️ 자동차
-          </button>
-          <button id="tabModeAnimal" onclick="switchMode('animal')" class="py-2 rounded-xl text-xs font-semibold transition bg-white/10 text-slate-300 hover:bg-white/20">
-            🦫 동물상
-          </button>
-          <button id="tabModeSNS" onclick="switchMode('sns')" class="py-2 rounded-xl text-xs font-semibold transition bg-white/10 text-slate-300 hover:bg-white/20">
-            📸 SNS
+          <button onclick="copyToClipboard()" class="p-2 bg-white/10 text-slate-200 rounded-lg hover:bg-white/20 text-xs font-bold flex items-center gap-1" title="단톡방용 텍스트 복사">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i> 복사
           </button>
         </div>
-
-        <!-- 캡처 대상: 개인별 요약 카드 -->
-        <div id="captureAreaCard" class="glass-box rounded-3xl p-6 shadow-2xl relative overflow-hidden bg-slate-900 border border-amber-500/30 text-white">
-          <div class="flex justify-between items-start border-b border-white/10 pb-4 mb-4">
-            <div>
-              <span id="cardHeaderTag" class="text-[10px] font-bold tracking-widest text-amber-400 uppercase">MUN MENTOR REAL ESTATE</span>
-              <h2 id="cardUserName" class="text-xl font-black text-white mt-0.5">테스</h2>
-            </div>
-            <span id="cardBadge" class="px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-400/30 text-amber-300 text-xs font-bold">
-              🔥 스마트 임장 러너
-            </span>
-          </div>
-
-          <div class="flex flex-col items-center justify-center my-3">
-            <div id="cardEmoji" class="w-20 h-20 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center text-4xl mb-2">
-              🏃‍♂️
-            </div>
-            <p id="cardQuote" class="text-xs font-medium text-amber-200 text-center italic px-2">
-              "현장에 답이 있다! 손품과 발품으로 가치를 증명합니다."
-            </p>
-          </div>
-
-          <div class="space-y-2 my-4 text-xs">
-            <div class="flex justify-between items-center bg-black/40 p-2.5 rounded-xl border border-white/5">
-              <span id="label1" class="text-slate-400">📊 대화 점유율</span>
-              <span id="val1" class="font-semibold text-slate-100">발언 42회 (38.2%)</span>
-            </div>
-            <div class="flex justify-between items-center bg-black/40 p-2.5 rounded-xl border border-white/5">
-              <span id="label2" class="text-slate-400">💡 주요 키워드</span>
-              <span id="val2" class="font-semibold text-amber-300">임장, 6호선, 급매</span>
-            </div>
-            <div class="flex justify-between items-center bg-black/40 p-2.5 rounded-xl border border-white/5">
-              <span id="label3" class="text-slate-400">🎯 핵심 매칭</span>
-              <span id="val3" class="font-semibold text-slate-100">한강변 핵심 급지 & 6호선 역세권</span>
-            </div>
-          </div>
-
-          <div class="pt-3 border-t border-white/10 flex justify-between items-center text-[10px] text-slate-400">
-            <span>Developed by Tess</span>
-            <span>With Mun Mentor & Line 6</span>
-          </div>
-        </div>
-
-        <button onclick="saveCardImage()" class="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-1.5 active:scale-95">
-          📸 이 카드 한 장 요약 캡처 저장
-        </button>
       </div>
 
-      <!-- [B] 전체 내용 비교표 뷰 -->
-      <div id="tableViewContainer" class="hidden space-y-4">
-        <div id="captureAreaTable" class="glass-box rounded-3xl p-5 shadow-2xl overflow-x-auto bg-slate-900 border border-amber-500/30 text-white">
-          <div class="border-b border-white/10 pb-3 mb-3 flex justify-between items-center">
-            <div>
-              <span class="text-[10px] font-bold tracking-widest text-amber-400 uppercase">MUN MENTOR TEAM REPORT</span>
-              <h3 class="text-base font-black text-white">📊 6호선 프로젝트 멤버별 종합 비교표</h3>
-            </div>
+      <!-- Capture Target Container -->
+      <div id="capture-container" class="bg-slate-900/95 p-6 sm:p-8 rounded-3xl border border-amber-500/30 shadow-2xl space-y-6 text-white">
+        
+        <!-- Result Header -->
+        <div class="flex justify-between items-end border-b border-white/10 pb-4">
+          <div>
+            <span class="text-xs font-extrabold text-amber-400 tracking-wider uppercase">MUN MENTOR LINE 6 PROJECT</span>
+            <h2 id="result-title" class="text-xl sm:text-2xl font-black text-white mt-0.5">🦁 멤버별 동물 페르소나</h2>
           </div>
+          <div class="text-right">
+            <span class="text-[10px] text-slate-400 font-mono">Developed by Tess</span>
+          </div>
+        </div>
 
-          <table class="w-full text-left text-xs">
-            <thead>
-              <tr class="border-b border-white/10 text-[11px] text-amber-300">
-                <th class="py-2 px-2">멤버</th>
-                <th class="py-2 px-2">발언(점유율)</th>
-                <th class="py-2 px-2">🏛️ 부동산</th>
-                <th class="py-2 px-2">🏎️ 드림카</th>
-                <th class="py-2 px-2">🦫 동물상</th>
-                <th class="py-2 px-2">주요 키워드</th>
+        <!-- View 1: Card View -->
+        <div id="card-view" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+
+        <!-- View 2: Table View -->
+        <div id="table-view" class="hidden overflow-x-auto">
+          <table class="w-full text-left text-xs sm:text-sm border-collapse bg-slate-950/60 rounded-xl overflow-hidden border border-white/10">
+            <thead class="bg-white/10 text-amber-300 font-bold border-b border-white/10">
+              <tr>
+                <th class="p-3 w-1/4">멤버 (닉네임)</th>
+                <th class="p-3 w-1/3">매칭 결과</th>
+                <th class="p-3">매칭 이유 및 특징</th>
               </tr>
             </thead>
-            <tbody id="summaryTableBody" class="divide-y divide-white/5 text-[11px]">
-              <!-- 동적 생성 -->
-            </tbody>
+            <tbody id="table-body" class="divide-y divide-white/5"></tbody>
           </table>
-
-          <div class="pt-3 mt-3 border-t border-white/10 flex justify-between items-center text-[9px] text-slate-400">
-            <span>Developed by Tess</span>
-            <span>Subway Line 6 Project</span>
-          </div>
         </div>
 
-        <button onclick="saveTableImage()" class="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-1.5 active:scale-95">
-          📸 전체 비교표 통째로 캡처 저장
-        </button>
+        <!-- Footer watermark on capture -->
+        <div class="text-center pt-2">
+          <p class="text-[11px] font-semibold text-amber-400/80">✨ 6호선 프로젝트 멤버 맞춤 페르소나 완료 ✨</p>
+        </div>
       </div>
 
-      <!-- 다시 하기 버튼 -->
-      <button onclick="resetAnalysis()" class="w-full py-2.5 rounded-2xl bg-white/10 hover:bg-white/15 text-xs font-semibold text-slate-300 border border-white/10 transition">
-        🔄 새로운 대화 분석하기
-      </button>
-    </section>
+    </div>
 
-  </main>
+  </div>
 
-  <!-- 푸터 -->
-  <footer class="w-full max-w-lg pb-3 text-center text-[10px] text-slate-400">
-    <p>© 2026 Subway Line 6 Project. All rights reserved.</p>
-  </footer>
-
-  <!-- 모바일 사진 저장 모달 -->
+  <!-- 모바일 사진 저장 모달 (아이폰/사파리 완벽 대응) -->
   <div id="imageModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4 z-50">
     <div class="bg-slate-900 border border-slate-700 rounded-3xl p-5 max-w-sm w-full flex flex-col items-center shadow-2xl">
       <div class="w-full flex justify-between items-center mb-3">
@@ -231,7 +169,7 @@
         <button onclick="closeModal()" class="text-slate-400 hover:text-white text-base font-bold">✕</button>
       </div>
       <p class="text-xs text-slate-300 text-center mb-3">
-        아이폰/모바일은 아래 이미지를 <span class="text-amber-300 font-bold">길게 꾹 눌러 '사진 앱에 저장'</span>하세요!
+        모바일은 아래 이미지를 <span class="text-amber-300 font-bold">길게 꾹 눌러 '사진 앱에 저장'</span>하세요!
       </p>
       <div class="w-full rounded-2xl overflow-hidden border border-white/20 shadow-inner mb-4 max-h-[60vh] overflow-y-auto">
         <img id="resultImage" class="w-full h-auto object-contain" src="" alt="Captured Result" />
@@ -243,261 +181,206 @@
   </div>
 
   <script>
-    let analyzedUsers = {};
-    let currentUser = "";
-    let currentMode = "realestate";
-    let currentView = "card";
+    let currentTheme = 'animal';
+    let currentView = 'card';
 
-    function handleTextFileUpload(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        document.getElementById('chatInput').value = e.target.result;
-      };
-      reader.readAsText(file);
+    // 원본 데이터 완벽 유지
+    const personaData = [
+      {
+        name: "최종관 (테스)",
+        role: "스마트 기획 사령관",
+        animal: { tag: "비버 / 리트리버", desc: "묵묵하고 꼼꼼하게 실무와 깃허브 웹 배포, 일정까지 완벽히 챙기는 완성형 살림꾼" },
+        car: { tag: "포르쉐 타이칸 / 테슬라 S", desc: "정밀한 분석력(포르쉐) 위에 GitHub 웹 툴을 다루는 첨단 테크(테슬라)를 결합한 올라운더" },
+        sns: { tag: "GitHub / Discord", desc: "체크리스트 웹 배포부터 꼼꼼한 일정 관리까지, 시스템을 직접 구축하고 판을 돌리는 테크 빌더" },
+        subway: { tag: "DMC(디지털미디어시티)역", desc: "트리플 환승 + 첨단 IT 테크의 핵심 거점. 기동력과 웹 배포 툴까지 다루는 테크니컬 스마트 사령탑" },
+        snack: { tag: "스페셜 참치김밥 / 키토김밥", desc: "밥보다 속재료(기획력, GitHub 웹 배포, 분석력)가 꽉 찬 올인원 메뉴! 든든한 모임의 반장" }
+      },
+      {
+        name: "문멘토",
+        role: "정신적 지주 & 리더",
+        animal: { tag: "사자 / 부엉이", desc: "큰 그림을 보고 통찰력과 방향성을 제시하며 모임의 판을 깔아주는 든든한 멘토" },
+        car: { tag: "메르세데스-벤츠 S클래스", desc: "묵직한 존재감과 안정감으로 전체 모임의 방향을 이끄는 플래그십 리더" },
+        sns: { tag: "링크드인 (LinkedIn)", desc: "전문적인 식견과 인사이트로 전체적인 방향성을 잡아주고 네트워킹을 이끄는 프로페셔널 허브" },
+        subway: { tag: "공덕역", desc: "6호선 최대의 쿼드러플 환승 허브이자 중심축. 묵직한 내공으로 모든 방향과 사람을 모으는 리더" },
+        snack: { tag: "오리지널 쌀떡볶이", desc: "분식집의 뼈대이자 중심! 묵직하고 깊은 양념 맛으로 전체 판을 이끄는 절대적인 메인 요리" }
+      },
+      {
+        name: "문멘토님 여왕님",
+        role: "품격 있는 소통 조율자",
+        animal: { tag: "백조", desc: "부드럽고 우아하면서도 사람의 마음을 움직이는 100억 펀딩 유치 내공의 소통 달인" },
+        car: { tag: "제네시스 G90", desc: "우아하고 품격 있는 분위기, 사람을 편안하게 이어주는 부드러운 승차감" },
+        sns: { tag: "인스타그램 (Instagram)", desc: "품격 있고 세련된 라이프스타일, 사람들의 마음을 사로잡는 따뜻하고 감각적인 소통" },
+        subway: { tag: "한강진역", desc: "품격과 감각이 공존하는 고급 문화·외교의 중심. 세련된 감성과 진정성 있는 소통의 매력" },
+        snack: { tag: "로제 / 크림 떡볶이", desc: "우아하고 부드러운 풍미! 고급스러운 맛과 매력으로 사람들의 마음을 사로잡는 분위기 메이커" }
+      },
+      {
+        name: "효니 (연혜)",
+        role: "폭풍 분석 에너자이저",
+        animal: { tag: "보더콜리 / 미어캣", desc: "지치지 않는 에너지와 호기심, 실시간 AI 데이터 폭풍 생성과 톡톡 튀는 순발력" },
+        car: { tag: "테슬라 모델 3 퍼포먼스", desc: "폭발적인 반응 속도(AI 활용), 넘치는 에너지와 빠른 데이터 처리 능력" },
+        sns: { tag: "스레드 / 트위터 (Threads / X)", desc: "실시간 정보력 최강! 트렌디한 AI 짤과 데이터를 끊임없이 쏟아내는 폭풍 리트윗형 에너자이저" },
+        subway: { tag: "합정 / 이태원역", desc: "24시간 잠들지 않는 폭발적인 에너지와 트렌드의 발상지. 쉴 새 없이 아이디어가 샘솟는 핫플레이스" },
+        snack: { tag: "마라 떡볶이 / 치즈 라볶이", desc: "톡 쏘는 강렬한 텐션과 넘치는 에너지! AI 데이터와 아이디어를 쉴 새 없이 뿜어내는 도파민 메뉴" }
+      },
+      {
+        name: "이주연 (으쌰)",
+        role: "쿨한 10분컷 실용파",
+        animal: { tag: "고양이", desc: "군더더기 없이 쿨하고 솔직한 화법, 복잡한 과정 없이 핵심만 10분 만에 짚는 실용주의자" },
+        car: { tag: "미니 쿠퍼 JCW", desc: "미니멀하고 쿨한 화법, 핵심만 날카롭고 민첩하게 치고 나가는 가벼운 기동력" },
+        sns: { tag: "틱톡 / 유튜브 쇼츠", desc: "긴 설명 필요 없이 10분 만에 핵심만 치고 빠지는 쿨하고 군더더기 없는 숏폼 실용파" },
+        subway: { tag: "삼각지역", desc: "군더더기 없는 도심 환승 쾌속선. 복잡한 서론 없이 10분 컷으로 핵심만 짚고 빠르게 전진" },
+        snack: { tag: "바삭 튀김 (김말이/오징어)", desc: "군더더기 없이 겉바속촉 깔끔한 10분 컷 실용파! 떡볶이 국물에 콕 찍어 핵심만 즐기는 쿨한 매력" }
+      },
+      {
+        name: "W.S.H (초록그린)",
+        role: "따뜻한 감성 힐러",
+        animal: { tag: "코알라 / 캥거루", desc: "바쁜 일상 속에서도 낭만임장과 배움을 즐기며 사람들을 따뜻하고 편안하게 품어주는 존재" },
+        car: { tag: "현대 팰리세이드 / 카니발", desc: "따뜻한 감성과 배려로 멤버들을 편안하고 넉넉하게 품어주는 패밀리 리무진" },
+        sns: { tag: "네이버 밴드 / 브런치", desc: "따뜻한 모임 감성, 사람들의 이야기를 경청하며 편안한 유대감과 연륜을 전해주는 힐링 라운지" },
+        subway: { tag: "월드컵경기장 / 평화의공원역", desc: "도심 속 여유와 따뜻한 힐링을 주는 넉넉한 쉼터. 20년 경력의 연륜과 편안한 감성" },
+        snack: { tag: "따끈한 꼬치어묵 & 국물", desc: "쌀쌀한 날씨에 속을 포근하게 녹여주는 깊은 육수처럼, 멤버들을 편안하고 따뜻하게 품어주는 힐러" }
+      },
+      {
+        name: "인영 (로로)",
+        role: "성실한 몰입형 연구파",
+        animal: { tag: "꿀벌", desc: "학회 발표와 바쁜 일정 속에서도 맡은 과제를 묵묵하고 끈기 있게 완주해내는 책임감" },
+        car: { tag: "도요타 프리우스", desc: "학회와 과제를 병행하는 강한 책임감, 묵묵하고 끈기 있게 완주하는 고연비 연구파" },
+        sns: { tag: "미디엄 / 벨로그 (Medium)", desc: "바쁜 일정 속에서도 묵묵히 자기 몫의 연구와 과제를 완성해내는 성실한 딥다이브 아카이브" },
+        subway: { tag: "고려대 / 안암역", desc: "학구열과 끈기가 돋보이는 연구·학술의 메카. 과제를 묵묵하고 깊이 있게 파고드는 연구파" },
+        snack: { tag: "속이 꽉 찬 찰순대", desc: "화려함보다는 묵묵하고 알찬 내공! 바쁜 일정 속에서도 과제를 뚝심 있게 완성해내는 진국 메뉴" }
+      }
+    ];
+
+    const themeTitles = {
+      animal: "🦁 멤버별 동물 페르소나",
+      car: "🚗 멤버별 자동차 페르소나",
+      sns: "📱 멤버별 SNS 페르소나",
+      subway: "🚇 멤버별 6호선 역 페르소나",
+      snack: "🍢 멤버별 분식 메뉴 페르소나"
+    };
+
+    function switchInputTab(tab) {
+      ['text', 'file', 'image'].forEach(t => {
+        document.getElementById(`panel-${t}`).classList.add('hidden');
+        document.getElementById(`tab-${t}`).className = 'pb-3 text-slate-400 hover:text-slate-200 border-b-2 border-transparent';
+      });
+      document.getElementById(`panel-${tab}`).classList.remove('hidden');
+      document.getElementById(`tab-${tab}`).className = 'pb-3 text-amber-400 border-b-2 border-amber-400 font-bold';
     }
 
-    async function handleMultipleImageUpload(event) {
-      const files = event.target.files;
-      if (!files || files.length === 0) return;
+    function loadSampleData() {
+      switchInputTab('text');
+      document.getElementById('chat-input').value = "[문멘토 6호선 프로젝트 분석 완료]\n최종관(테스), 문멘토, 문멘토님 여왕님, 효니(연혜), 이주연(으쌰), W.S.H(초록그린), 인영(로로)";
+      analyzeChat();
+    }
 
-      const loadingBox = document.getElementById('ocrLoading');
-      const statusText = document.getElementById('ocrStatus');
-      loadingBox.classList.remove('hidden');
+    function clearAll() {
+      document.getElementById('chat-input').value = '';
+    }
 
-      let combinedText = document.getElementById('chatInput').value;
-      const total = files.length;
+    function handleTxtUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        document.getElementById('chat-input').value = evt.target.result;
+        document.getElementById('file-name').innerText = `✅ 파일 로드 완료: ${file.name}`;
+        document.getElementById('file-name').classList.remove('hidden');
+      };
+      reader.readAsText(file, 'UTF-8');
+    }
 
-      try {
-        const worker = await Tesseract.createWorker('kor+eng');
-        for (let i = 0; i < total; i++) {
-          statusText.innerText = `📷 사진 분석 중... (${i + 1}/${total}장 완료)`;
-          const ret = await worker.recognize(files[i]);
-          combinedText += `\n${ret.data.text}`;
-        }
-        await worker.terminate();
-
-        document.getElementById('chatInput').value = combinedText;
-        loadingBox.classList.add('hidden');
-        alert(`총 ${total}장의 사진에서 대화 텍스트를 모두 읽어왔습니다!`);
-      } catch (err) {
-        console.error(err);
-        loadingBox.classList.add('hidden');
-        alert('사진 인식 중 오류가 발생했습니다. 직접 텍스트를 붙여넣어 주세요.');
-      }
+    function handleImgUpload(e) {
+      const files = Array.from(e.target.files).slice(0, 15);
+      const container = document.getElementById('image-preview');
+      container.innerHTML = '';
+      files.forEach(f => {
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(f);
+        img.className = 'w-16 h-16 object-cover rounded-lg border border-white/20';
+        container.appendChild(img);
+      });
     }
 
     function analyzeChat() {
-      const text = document.getElementById('chatInput').value.trim();
-      if (!text) {
-        alert('대화 내용을 입력하거나 사진/파일을 올려주세요!');
-        return;
-      }
+      renderResults();
+      document.getElementById('result-section').scrollIntoView({ behavior: 'smooth' });
+    }
 
-      const lines = text.split('\n');
-      const userCounts = {};
-      const userWords = {};
-      const regex = /\[(.*?)\]\s+\[(.*?)\]\s+(.*)/;
-
-      let totalMessages = 0;
-
-      lines.forEach(line => {
-        const match = line.match(regex);
-        if (match) {
-          const user = match[1].trim();
-          const message = match[3].trim();
-          
-          if (!userCounts[user]) {
-            userCounts[user] = 0;
-            userWords[user] = [];
-          }
-          userCounts[user]++;
-          totalMessages++;
-
-          const words = message.split(/\s+/).filter(w => w.length > 1);
-          userWords[user].push(...words);
-        }
+    function setTheme(theme) {
+      currentTheme = theme;
+      document.querySelectorAll('.theme-btn').forEach(b => {
+        b.className = 'theme-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-white/10 text-slate-300 hover:bg-white/20';
       });
-
-      if (Object.keys(userCounts).length === 0) {
-        analyzedUsers = {
-          "테스": { count: 42, percent: 38.2, keywords: "임장, 6호선, 급매, 상급지", idx: 0 },
-          "문멘토": { count: 35, percent: 31.8, keywords: "가치투자, 재개발, 로드맵, 분석", idx: 1 },
-          "열정러": { count: 20, percent: 18.2, keywords: "호가, 전세가율, 거래량, 차트", idx: 2 },
-          "스터디원": { count: 13, percent: 11.8, keywords: "응원, 인증, 스터디, 화이팅", idx: 3 }
-        };
-      } else {
-        analyzedUsers = {};
-        Object.keys(userCounts).forEach((user, idx) => {
-          const count = userCounts[user];
-          const percent = ((count / totalMessages) * 100).toFixed(1);
-          const freq = {};
-          userWords[user].forEach(w => freq[w] = (freq[w] || 0) + 1);
-          const topKeywords = Object.keys(freq).sort((a,b) => freq[b] - freq[a]).slice(0, 3).join(', ') || "열정, 소통, 임장";
-
-          analyzedUsers[user] = {
-            count: count,
-            percent: percent,
-            keywords: topKeywords,
-            idx: idx % 4
-          };
-        });
-      }
-
+      document.getElementById(`btn-${theme}`).className = 'theme-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500 text-slate-950';
+      document.getElementById('result-title').innerText = themeTitles[theme];
       renderResults();
     }
 
-    // 테스님 원본 매칭 데이터 (타이칸 · 비버 완벽 반영)
-    const modesData = {
-      realestate: [
-        { badge: "🔥 스마트 임장 러너", emoji: "🏃‍♂️", quote: '"현장에 답이 있다! 손품과 발품으로 가치를 발굴합니다."', label1: "📊 대화 점유율", label2: "💡 주요 키워드", label3: "🎯 핵심 추천지", target: "한강변 핵심 급지 & 6호선 역세권", tag: "REAL ESTATE PERSONA" },
-        { badge: "💎 상급지 전략가", emoji: "🏙️", quote: '"단기 변동성에 흔들리지 않고 10년 뒤 랜드마크를 선점합니다."', label1: "📊 대화 점유율", label2: "💡 주요 키워드", label3: "🎯 핵심 추천지", target: "용산·마포·성수 하이엔드 랜드마크", tag: "REAL ESTATE PERSONA" },
-        { badge: "📊 데이터 밸류 헌터", emoji: "📈", quote: '"차트와 호가, 수급 분석을 통해 최적의 타이밍을 포착합니다."', label1: "📊 대화 점유율", label2: "💡 주요 키워드", label3: "🎯 핵심 추천지", target: "갭투자 최적지 및 대장 아파트", tag: "REAL ESTATE PERSONA" },
-        { badge: "✨ 열정 부스터", emoji: "🚀", quote: '"문멘토 팀원들과 함께 끝까지 상급지로 향합니다!"', label1: "📊 대화 점유율", label2: "💡 주요 키워드", label3: "🎯 핵심 추천지", target: "내 집 마련 & 안정적 자산 증식", tag: "REAL ESTATE PERSONA" }
-      ],
-      car: [
-        { badge: "⚡ 포르쉐 타이칸 (하이테크 드라이버)", emoji: "⚡", quote: '"전기차처럼 즉각적인 토크와 폭발적인 실행력으로 상급지를 향합니다."', label1: "⚡ 순간 가속력", label2: "🔧 핵심 퍼포먼스", label3: "🏁 매칭 드림카", target: "Porsche Taycan Turbo S / 고성능 EV", tag: "CAR & DRIVING PERSONA" },
-        { badge: "🚙 메르세데스 G바겐 (오프로드 정복자)", emoji: "🚙", quote: '"어떤 부동산 하락장과 험로도 묵직하고 단단하게 돌파합니다."', label1: "🛡️ 험로 돌파력", label2: "🔧 핵심 퍼포먼스", label3: "🏁 매칭 드림카", target: "Mercedes-AMG G 63 / 럭셔리 SUV", tag: "CAR & DRIVING PERSONA" },
-        { badge: "🏎️ 포르쉐 911 GT3 (트랙 헌터)", emoji: "🏎️", quote: '"가장 예리한 코너링과 날렵한 감각으로 최적의 타이밍을 낚아챕니다."', label1: "🏁 코너링 제어력", label2: "🔧 핵심 퍼포먼스", label3: "🏁 매칭 드림카", target: "Porsche 911 GT3 / 퓨어 스포츠카", tag: "CAR & DRIVING PERSONA" },
-        { badge: "👑 롤스로이스 고스트 (하이엔드 리더)", emoji: "👑", quote: '"최고의 안락함과 품격으로 자산의 정점에 도달합니다."', label1: "✨ 승차감 & 품격", label2: "🔧 핵심 퍼포먼스", label3: "🏁 매칭 드림카", target: "Rolls-Royce Ghost / 플래그십 세단", tag: "CAR & DRIVING PERSONA" }
-      ],
-      animal: [
-        { badge: "🦫 성실한 설계자 비버", emoji: "🦫", quote: '"묵묵히 튼튼한 댐을 쌓듯, 탄탄하고 흔들림 없는 자산 포트폴리오를 구축합니다."', label1: "🏗️ 기초 설계력", label2: "🐾 대표 성향", label3: "🤝 꿀조합 파트너", target: "추진력 사자 🦁", tag: "ANIMAL PERSONA" },
-        { badge: "🦁 열정적인 리더 사자", emoji: "🦁", quote: '"목표를 정하면 팀을 이끌고 가장 먼저 임장지로 뛰어갑니다."', label1: "🔥 에너지 지수", label2: "🐾 대표 성향", label3: "🤝 꿀조합 파트너", target: "성실한 비버 🦫", tag: "ANIMAL PERSONA" },
-        { badge: "🦉 신중한 분석가 올빼미", emoji: "🦉", quote: '"빅데이터와 실거래가를 밤새 정밀하게 대조·분석합니다."', label1: "🧠 분석 싱크로율", label2: "🐾 대표 성향", label3: "🤝 꿀조합 파트너", target: "기민한 여우 🦊", tag: "ANIMAL PERSONA" },
-        { badge: "🦊 기민한 밸류 여우", emoji: "🦊", quote: '"저평가된 알짜 급매물을 한눈에 꿰뚫어 봅니다."', label1: "⚡ 기회 포착력", label2: "🐾 대표 성향", label3: "🤝 꿀조합 파트너", target: "든든한 불곰 🐻", tag: "ANIMAL PERSONA" }
-      ],
-      sns: [
-        { badge: "📸 #임장스타그램", emoji: "☕", quote: '"주말마다 임장 챌린지 인증 완료! ☕ #오운완 #임장완"', label1: "📱 인스타 무드", label2: "🏷️ 해시태그", label3: "✨ 피드 콘셉트", target: "#임장브이로그 #6호선정복", tag: "INSTA FEED STYLE" },
-        { badge: "🌟 #자산로드맵", emoji: "✨", quote: '"오늘보다 더 나은 내일을 기록하는 중 🏙️ #상급지갈아타기"', label1: "📱 인스타 무드", label2: "🏷️ 해시태그", label3: "✨ 피드 콘셉트", target: "#자기계발 #경제적자유", tag: "INSTA FEED STYLE" },
-        { badge: "📊 #스마트인베스터", emoji: "💼", quote: '"주간 호가와 거래량 핵심만 카드뉴스로 요약! 📈"', label1: "📱 인스타 무드", label2: "🏷️ 해시태그", label3: "✨ 피드 콘셉트", target: "#부동산공부 #인사이트공유", tag: "INSTA FEED STYLE" },
-        { badge: "💖 #열정메이커", emoji: "🔥", quote: '"함께 스터디하는 문멘토 6호선 팀원들이 있어 든든해요!"', label1: "📱 인스타 무드", label2: "🏷️ 해시태그", label3: "✨ 피드 콘셉트", target: "#동기부여 #함께성장", tag: "INSTA FEED STYLE" }
-      ]
-    };
+    function setView(view) {
+      currentView = view;
+      if (view === 'card') {
+        document.getElementById('card-view').classList.remove('hidden');
+        document.getElementById('table-view').classList.add('hidden');
+        document.getElementById('view-card-btn').className = 'px-2.5 py-1 rounded-md font-bold bg-amber-500 text-slate-950 shadow-sm';
+        document.getElementById('view-table-btn').className = 'px-2.5 py-1 rounded-md font-bold text-slate-400';
+      } else {
+        document.getElementById('card-view').classList.add('hidden');
+        document.getElementById('table-view').classList.remove('hidden');
+        document.getElementById('view-table-btn').className = 'px-2.5 py-1 rounded-md font-bold bg-amber-500 text-slate-950 shadow-sm';
+        document.getElementById('view-card-btn').className = 'px-2.5 py-1 rounded-md font-bold text-slate-400';
+      }
+      renderResults();
+    }
 
     function renderResults() {
-      const tabsContainer = document.getElementById('userTabs');
-      tabsContainer.innerHTML = '';
-      const tableBody = document.getElementById('summaryTableBody');
+      const cardContainer = document.getElementById('card-view');
+      const tableBody = document.getElementById('table-body');
+      cardContainer.innerHTML = '';
       tableBody.innerHTML = '';
 
-      const users = Object.keys(analyzedUsers);
+      personaData.forEach((item, idx) => {
+        const themeInfo = item[currentTheme];
 
-      users.forEach((user, i) => {
-        const btn = document.createElement('button');
-        btn.className = `px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition ${i === 0 ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-white/10 text-slate-300 hover:bg-white/20'}`;
-        btn.innerText = user;
-        btn.onclick = () => selectUser(user, btn);
-        tabsContainer.appendChild(btn);
-
-        const data = analyzedUsers[user];
-        const re = modesData.realestate[data.idx].badge;
-        const car = modesData.car[data.idx].badge.split(' ')[1];
-        const animal = modesData.animal[data.idx].badge.split(' ')[1];
+        const card = document.createElement('div');
+        card.className = "bg-slate-950/70 p-4 sm:p-5 rounded-2xl border border-white/10 shadow-sm hover:border-amber-500/40 transition space-y-2 flex flex-col justify-between";
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-extrabold text-white">${item.name}</span>
+              <span class="text-[11px] font-semibold px-2 py-0.5 bg-amber-500/20 text-amber-300 rounded-full">${item.role}</span>
+            </div>
+            <div class="mt-2 text-base font-black text-amber-400 tracking-tight">${themeInfo.tag}</div>
+            <p class="text-xs text-slate-300 leading-relaxed mt-1">${themeInfo.desc}</p>
+          </div>
+        `;
+        cardContainer.appendChild(card);
 
         const row = document.createElement('tr');
+        row.className = idx % 2 === 0 ? "bg-white/5" : "bg-transparent";
         row.innerHTML = `
-          <td class="py-2.5 px-2 font-bold text-white">${user}</td>
-          <td class="py-2.5 px-2 text-slate-300">${data.count}회 (${data.percent}%)</td>
-          <td class="py-2.5 px-2 text-amber-300 font-semibold">${re}</td>
-          <td class="py-2.5 px-2 text-slate-200">${car}</td>
-          <td class="py-2.5 px-2 text-slate-200">${animal}</td>
-          <td class="py-2.5 px-2 text-slate-400 truncate max-w-[100px]">${data.keywords}</td>
+          <td class="p-3 font-bold text-white">${item.name} <span class="block text-[11px] font-normal text-slate-400">${item.role}</span></td>
+          <td class="p-3 font-bold text-amber-400">${themeInfo.tag}</td>
+          <td class="p-3 text-xs text-slate-300 leading-relaxed">${themeInfo.desc}</td>
         `;
         tableBody.appendChild(row);
       });
-
-      document.getElementById('inputSection').classList.add('hidden');
-      document.getElementById('resultSection').classList.remove('hidden');
-
-      if (users.length > 0) {
-        currentUser = users[0];
-        updateCard();
-      }
     }
 
-    function selectUser(user, activeBtn) {
-      currentUser = user;
-      Array.from(document.getElementById('userTabs').children).forEach(b => {
-        b.className = 'px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition bg-white/10 text-slate-300 hover:bg-white/20';
-      });
-      activeBtn.className = 'px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition bg-amber-500 text-slate-950';
-      updateCard();
-    }
+    // 모바일/아이폰 완벽 대응 캡처 함수
+    async function downloadCapture() {
+      const btn = document.getElementById('captureBtn');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '⏳ 캡처 중...';
+      btn.disabled = true;
 
-    function switchMode(mode) {
-      currentMode = mode;
-      const modes = ['realestate', 'car', 'animal', 'sns'];
-      const btnMap = { realestate: 'tabModeRealEstate', car: 'tabModeCar', animal: 'tabModeAnimal', sns: 'tabModeSNS' };
-
-      modes.forEach(m => {
-        const btn = document.getElementById(btnMap[m]);
-        if (m === mode) {
-          btn.className = "py-2 rounded-xl text-xs font-bold transition bg-amber-500 text-slate-950 shadow-md";
-        } else {
-          btn.className = "py-2 rounded-xl text-xs font-semibold transition bg-white/10 text-slate-300 hover:bg-white/20";
-        }
-      });
-
-      updateCard();
-    }
-
-    function switchView(view) {
-      currentView = view;
-      if (view === 'card') {
-        document.getElementById('viewCardBtn').className = "flex-1 py-2 rounded-xl text-xs font-bold transition bg-amber-500 text-slate-950";
-        document.getElementById('viewTableBtn').className = "flex-1 py-2 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white";
-        document.getElementById('cardViewContainer').classList.remove('hidden');
-        document.getElementById('tableViewContainer').classList.add('hidden');
-      } else {
-        document.getElementById('viewTableBtn').className = "flex-1 py-2 rounded-xl text-xs font-bold transition bg-amber-500 text-slate-950";
-        document.getElementById('viewCardBtn').className = "flex-1 py-2 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white";
-        document.getElementById('tableViewContainer').classList.remove('hidden');
-        document.getElementById('cardViewContainer').classList.add('hidden');
-      }
-    }
-
-    function updateCard() {
-      if (!currentUser || !analyzedUsers[currentUser]) return;
-      const data = analyzedUsers[currentUser];
-      const p = modesData[currentMode][data.idx];
-
-      document.getElementById('cardHeaderTag').innerText = p.tag;
-      document.getElementById('cardUserName').innerText = currentUser;
-      document.getElementById('cardBadge').innerText = p.badge;
-      document.getElementById('cardEmoji').innerText = p.emoji;
-      document.getElementById('cardQuote').innerText = p.quote;
-
-      document.getElementById('label1').innerText = p.label1;
-      document.getElementById('val1').innerText = (currentMode === 'realestate') ? `발언 ${data.count}회 (${data.percent}%)` : (currentMode === 'car' ? '100% 하이테크 반응속도' : (currentMode === 'animal' ? '99.9% 싱크로율' : '트렌디 감성 100%'));
-
-      document.getElementById('label2').innerText = p.label2;
-      document.getElementById('val2').innerText = data.keywords;
-
-      document.getElementById('label3').innerText = p.label3;
-      document.getElementById('val3').innerText = p.target;
-    }
-
-    function resetAnalysis() {
-      document.getElementById('resultSection').classList.add('hidden');
-      document.getElementById('inputSection').classList.remove('hidden');
-    }
-
-    async function captureAndDownload(elementId, filename) {
-      const element = document.getElementById(elementId);
+      const container = document.getElementById('capture-container');
       try {
-        const canvas = await html2canvas(element, {
-          scale: 3,
-          backgroundColor: '#0F172A',
-          useCORS: true,
-          logging: false
-        });
-
+        const canvas = await html2canvas(container, { scale: 2.5, backgroundColor: '#0F172A', useCORS: true });
         const imageUri = canvas.toDataURL('image/png');
 
         const link = document.createElement('a');
-        link.download = `${filename}.png`;
+        link.download = `문멘토_6호선_페르소나_${currentTheme}.png`;
         link.href = imageUri;
         document.body.appendChild(link);
         link.click();
@@ -508,17 +391,12 @@
         modal.classList.remove('hidden');
         modal.classList.add('flex');
       } catch (err) {
-        alert('캡처 저장 중 오류가 발생했습니다.');
+        alert('캡처 저장 중 문제가 발생했습니다.');
         console.error(err);
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
       }
-    }
-
-    function saveCardImage() {
-      captureAndDownload('captureAreaCard', `MunMentor_${currentUser}_${currentMode}_카드`);
-    }
-
-    function saveTableImage() {
-      captureAndDownload('captureAreaTable', `MunMentor_전체비교표_${Date.now()}`);
     }
 
     function closeModal() {
@@ -526,6 +404,21 @@
       modal.classList.add('hidden');
       modal.classList.remove('flex');
     }
+
+    function copyToClipboard() {
+      let text = `[${themeTitles[currentTheme]}]\n“스터디의 메인 주제였던 6호선 주요 역세권의 입지적·공간적 특징에 빗댄 멤버별 매칭입니다.”\n\n`;
+      personaData.forEach(item => {
+        text += `▪ ${item.name} (${item.role})\n→ ${item[currentTheme].tag} : ${item[currentTheme].desc}\n\n`;
+      });
+      navigator.clipboard.writeText(text).then(() => {
+        alert("단톡방에 바로 공유할 수 있도록 텍스트가 복사되었습니다!");
+      });
+    }
+
+    window.onload = function() {
+      lucide.createIcons();
+      renderResults();
+    };
   </script>
 </body>
 </html>
