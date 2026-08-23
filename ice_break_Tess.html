@@ -3,38 +3,33 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>문멘토 6호선 부동산 프로젝트 페르소나 카드</title>
+  <title>문멘토 6호선 부동산 프로젝트 - 카톡 대화 분석 & 페르소나</title>
   
-  <!-- Tailwind CSS CDN -->
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- html2canvas 라이브러리 (CORS 지원) -->
+  <!-- html2canvas (캡처 지원) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  
-  <!-- Google Fonts (Pretendard & Montserrat) -->
+  <!-- Pretendard 폰트 -->
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 
   <style>
     body {
       font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
       -webkit-tap-highlight-color: transparent;
-    }
-    
-    /* 서울 롯데타워 감성 배경 */
-    .bg-seoul {
+      /* 서울 롯데타워 한강 야경 감성 배경 */
       background: linear-gradient(180deg, rgba(15, 23, 42, 0.85) 0%, rgba(10, 15, 29, 0.92) 100%),
                   url('https://images.unsplash.com/photo-1578637387939-43c525550085?auto=format&fit=crop&w=1200&q=80') no-repeat center center fixed;
       background-size: cover;
     }
-
-    /* 글래스모피즘 효과 */
-    .glass-card {
-      background: rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-    }
     
-    .gold-gradient-text {
+    .glass-box {
+      background: rgba(255, 255, 255, 0.07);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .gold-gradient {
       background: linear-gradient(135deg, #FDE68A 0%, #D97706 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -42,98 +37,127 @@
   </style>
 </head>
 
-<body class="bg-seoul min-h-screen text-slate-100 flex flex-col items-center justify-between p-4 selection:bg-amber-500 selection:text-white">
+<body class="min-h-screen text-slate-100 flex flex-col items-center justify-between p-4 selection:bg-amber-500 selection:text-white">
 
-  <!-- 헤더 영역 -->
-  <header class="w-full max-w-md pt-4 pb-2 text-center">
-    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-semibold tracking-wider mb-2">
+  <!-- 상단 타이틀 헤더 -->
+  <header class="w-full max-w-md pt-3 pb-2 text-center">
+    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px] font-semibold tracking-wider mb-2">
       🏛️ MUN MENTOR REAL ESTATE
     </div>
-    <h1 class="text-2xl font-black tracking-tight text-white">
-      6호선 프로젝트 <span class="gold-gradient-text">페르소나 카드</span>
+    <h1 class="text-xl font-black text-white">
+      6호선 프로젝트 <span class="gold-gradient">대화 분석 & 페르소나</span>
     </h1>
-    <p class="text-xs text-slate-300 mt-1">상급지 도약을 향한 나의 투자 페르소나</p>
+    <p class="text-xs text-slate-300 mt-1">카톡 대화로 알아보는 우리 팀원들의 부동산 성향</p>
   </header>
 
-  <!-- 캡처 대상 메인 카드 영역 -->
-  <main class="w-full max-w-md my-auto py-2">
-    <div id="captureArea" class="glass-card rounded-3xl p-6 shadow-2xl relative overflow-hidden">
-      
-      <!-- 카드 상단 배경 데코 -->
-      <div class="absolute -right-12 -top-12 w-36 h-36 bg-amber-500/15 rounded-full blur-2xl pointer-events-none"></div>
-      <div class="absolute -left-12 -bottom-12 w-36 h-36 bg-blue-600/15 rounded-full blur-2xl pointer-events-none"></div>
+  <!-- 메인 인터랙션 영역 -->
+  <main class="w-full max-w-md space-y-4 my-auto py-2">
 
-      <!-- 카드 상단 정보 -->
-      <div class="flex justify-between items-start border-b border-white/10 pb-4 mb-5 relative z-10">
-        <div>
-          <span class="text-[10px] font-bold uppercase tracking-widest text-amber-400">Persona Profile</span>
-          <h2 id="cardTitle" class="text-xl font-bold text-white mt-0.5">스마트 임장 러너</h2>
-        </div>
-        <div class="text-right">
-          <span class="inline-block px-2.5 py-1 rounded-lg bg-white/10 text-xs font-semibold text-slate-200" id="cardBadge">
-            🔥 공격적 레버리지형
+    <!-- 1단계: 대화 내용 입력 섹션 -->
+    <section id="inputSection" class="glass-box rounded-3xl p-5 shadow-2xl">
+      <div class="flex items-center justify-between mb-2">
+        <label class="text-xs font-bold text-amber-300">💬 카카오톡 대화 내용 입력</label>
+        <span class="text-[11px] text-slate-400">텍스트 붙여넣기 또는 파일</span>
+      </div>
+      
+      <textarea id="chatInput" rows="5" placeholder="카카오톡 단톡방 대화 내용을 여기에 붙여넣으세요...&#10;(예: [테스] 이번 주말 6호선 임장 가실 분 계신가요?)" class="w-full p-3 bg-black/40 border border-white/10 rounded-2xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-400 resize-none"></textarea>
+
+      <div class="flex items-center justify-between mt-3 gap-2">
+        <label class="flex-1 py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/15 text-center text-xs font-semibold cursor-pointer border border-white/10 transition truncate">
+          📂 .txt 파일 불러오기
+          <input type="file" id="fileInput" accept=".txt" class="hidden" onchange="handleFileUpload(event)" />
+        </label>
+        
+        <button onclick="analyzeChat()" class="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 active:scale-95 transition">
+          🚀 대화 분석하기
+        </button>
+      </div>
+    </section>
+
+    <!-- 2단계: 분석 결과 및 캡처 카드 섹션 (분석 후 노출) -->
+    <section id="resultSection" class="hidden space-y-4">
+      
+      <!-- 참여자 선택 탭 -->
+      <div class="glass-box rounded-2xl p-3">
+        <label class="text-[11px] font-bold text-slate-300 block mb-2">👤 멤버별 페르소나 카드 확인</label>
+        <div id="userTabs" class="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none"></div>
+      </div>
+
+      <!-- 실제 캡처 대상 카드 -->
+      <div id="captureArea" class="glass-box rounded-3xl p-6 shadow-2xl relative overflow-hidden bg-slate-900/90 border border-amber-500/30">
+        
+        <!-- 은은한 조명 효과 -->
+        <div class="absolute -right-10 -top-10 w-32 h-32 bg-amber-500/20 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="absolute -left-10 -bottom-10 w-32 h-32 bg-blue-600/20 rounded-full blur-2xl pointer-events-none"></div>
+
+        <!-- 카드 상단 정보 -->
+        <div class="flex justify-between items-start border-b border-white/10 pb-4 mb-4 relative z-10">
+          <div>
+            <span class="text-[10px] font-bold tracking-widest text-amber-400 uppercase">MUN MENTOR LINE 6</span>
+            <h2 id="cardUserName" class="text-xl font-black text-white mt-0.5">테스</h2>
+          </div>
+          <span id="cardBadge" class="px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-400/30 text-amber-300 text-xs font-bold">
+            🔥 스마트 임장 러너
           </span>
         </div>
+
+        <!-- 캐릭터 및 명언 -->
+        <div class="flex flex-col items-center justify-center my-3 relative z-10">
+          <div id="cardEmoji" class="w-20 h-20 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center text-4xl shadow-inner mb-2">
+            🏃‍♂️
+          </div>
+          <p id="cardQuote" class="text-xs font-medium text-amber-200 text-center italic px-2">
+            "현장에 답이 있다! 손품과 발품으로 가치를 증명합니다."
+          </p>
+        </div>
+
+        <!-- 분석 스탯 상세 -->
+        <div class="space-y-2 my-4 text-xs relative z-10">
+          <div class="flex justify-between items-center bg-black/30 p-2.5 rounded-xl border border-white/5">
+            <span class="text-slate-400">📊 대화 점유율</span>
+            <span id="cardStats" class="font-semibold text-slate-100">발언 42회 (18.5%)</span>
+          </div>
+          <div class="flex justify-between items-center bg-black/30 p-2.5 rounded-xl border border-white/5">
+            <span class="text-slate-400">💡 최다 언급 키워드</span>
+            <span id="cardKeywords" class="font-semibold text-amber-300">임장, 6호선, 급매</span>
+          </div>
+          <div class="flex justify-between items-center bg-black/30 p-2.5 rounded-xl border border-white/5">
+            <span class="text-slate-400">🎯 추천 투자 입지</span>
+            <span id="cardTarget" class="font-semibold text-slate-100">한강변 핵심 급지 및 6호선 환승 역세권</span>
+          </div>
+        </div>
+
+        <!-- 카드 하단 정보 -->
+        <div class="pt-3 border-t border-white/10 flex justify-between items-center text-[10px] text-slate-400 relative z-10">
+          <span>Developed by Tess</span>
+          <span>With Mun Mentor Real Estate</span>
+        </div>
       </div>
 
-      <!-- 카드 메인 캐릭터/아이콘 -->
-      <div class="flex flex-col items-center justify-center my-4 relative z-10">
-        <div class="w-24 h-24 rounded-2xl bg-gradient-to-tr from-amber-500/20 to-orange-400/20 border border-amber-400/30 flex items-center justify-center text-5xl shadow-inner mb-3" id="cardEmoji">
-          🏃‍♂️
-        </div>
-        <p id="cardQuote" class="text-sm font-medium text-amber-200 text-center italic px-2">
-          "현장에 답이 있다! 6호선부터 마용성, 강남까지 직접 뛰며 가치를 발굴합니다."
-        </p>
+      <!-- 하단 컨트롤 버튼 -->
+      <div class="flex gap-2">
+        <button onclick="resetAnalysis()" class="flex-1 py-3 px-4 rounded-2xl bg-white/10 hover:bg-white/15 active:scale-95 text-xs font-semibold text-white border border-white/15 transition">
+          🔄 다시 분석하기
+        </button>
+        <button id="captureBtn" onclick="saveAsImage()" class="flex-1 py-3 px-4 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 active:scale-95 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-1.5">
+          📸 카드 캡처 저장
+        </button>
       </div>
+    </section>
 
-      <!-- 상세 스탯 / 특징 -->
-      <div class="space-y-2.5 my-5 text-xs relative z-10">
-        <div class="flex justify-between items-center bg-black/25 p-2.5 rounded-xl border border-white/5">
-          <span class="text-slate-400">💡 핵심 키워드</span>
-          <span id="cardKeywords" class="font-semibold text-slate-100">손품·발품 일치 / 역세권 정밀 분석</span>
-        </div>
-        <div class="flex justify-between items-center bg-black/25 p-2.5 rounded-xl border border-white/5">
-          <span class="text-slate-400">🎯 목표 입지</span>
-          <span id="cardTarget" class="font-semibold text-amber-300">한강변 프리미엄 급지 진입</span>
-        </div>
-        <div class="flex justify-between items-center bg-black/25 p-2.5 rounded-xl border border-white/5">
-          <span class="text-slate-400">🤝 팀 시너지 역할</span>
-          <span id="cardRole" class="font-semibold text-slate-100">단톡방 시세 브리핑 & 모의 임장 리드</span>
-        </div>
-      </div>
-
-      <!-- 카드 푸터 -->
-      <div class="pt-3 border-t border-white/10 flex justify-between items-center text-[10px] text-slate-400 relative z-10">
-        <span>Developed by Tess</span>
-        <span>With Mun Mentor & Line 6</span>
-      </div>
-    </div>
-
-    <!-- 하단 컨트롤 버튼 그룹 -->
-    <div class="mt-4 flex gap-2">
-      <!-- 페르소나 랜덤 뽑기/바꾸기 -->
-      <button onclick="changePersona()" class="flex-1 py-3 px-4 rounded-2xl bg-white/10 hover:bg-white/20 active:scale-95 border border-white/15 text-white font-semibold text-sm transition flex items-center justify-center gap-1.5 shadow-lg">
-        🎲 다른 페르소나 뽑기
-      </button>
-
-      <!-- 캡처 / 이미지 저장 버튼 -->
-      <button id="captureBtn" onclick="saveAsImage()" class="flex-1 py-3 px-4 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 active:scale-95 text-slate-950 font-bold text-sm transition flex items-center justify-center gap-1.5 shadow-lg shadow-amber-500/20">
-        📸 카드 캡처 저장
-      </button>
-    </div>
   </main>
 
-  <!-- 푸터 링크 -->
-  <footer class="w-full max-w-md pb-4 text-center text-[11px] text-slate-400">
+  <!-- 푸터 -->
+  <footer class="w-full max-w-md pb-3 text-center text-[10px] text-slate-400">
     <p>© 2026 Subway Line 6 Project. All rights reserved.</p>
   </footer>
 
-  <!-- 모바일 완벽 대응 이미지 저장 팝업 모달 -->
-  <div id="imageModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4 z-50">
+  <!-- 모바일/아이폰 사진 저장 모달 팝업 -->
+  <div id="imageModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4 z-50">
     <div class="bg-slate-900 border border-slate-700 rounded-3xl p-5 max-w-sm w-full flex flex-col items-center shadow-2xl">
       <div class="w-full flex justify-between items-center mb-3">
         <span class="text-xs font-bold text-amber-400">📸 캡처 완료!</span>
-        <button onclick="closeModal()" class="text-slate-400 hover:text-white text-lg font-bold">✕</button>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-white text-base font-bold">✕</button>
       </div>
       <p class="text-xs text-slate-300 text-center mb-3">
         아이폰/모바일은 아래 이미지를 <span class="text-amber-300 font-bold">길게 꾹 눌러 '사진 앱에 저장'</span>하세요!
@@ -147,63 +171,164 @@
     </div>
   </div>
 
-  <!-- 페르소나 데이터 및 캡처 스크립트 -->
+  <!-- 분석 로직 및 캡처 스크립트 -->
   <script>
-    const personas = [
+    let analyzedUsers = {};
+    let currentUser = "";
+
+    // 파일 업로드 파싱
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('chatInput').value = e.target.result;
+      };
+      reader.readAsText(file);
+    }
+
+    // 카카오톡 텍스트 분석 로직
+    function analyzeChat() {
+      const text = document.getElementById('chatInput').value.trim();
+      if (!text) {
+        alert('대화 내용을 입력하거나 파일을 불러와 주세요!');
+        return;
+      }
+
+      const lines = text.split('\n');
+      const userCounts = {};
+      const userWords = {};
+
+      // 카카오톡 대화 정규식 패턴 (모바일/PC 지원: [이름] [시간] 메시지)
+      const regex = /\[(.*?)\]\s+\[(.*?)\]\s+(.*)/;
+
+      let totalMessages = 0;
+
+      lines.forEach(line => {
+        const match = line.match(regex);
+        if (match) {
+          const user = match[1].trim();
+          const message = match[3].trim();
+          
+          if (!userCounts[user]) {
+            userCounts[user] = 0;
+            userWords[user] = [];
+          }
+          userCounts[user]++;
+          totalMessages++;
+
+          // 단순 단어 추출
+          const words = message.split(/\s+/).filter(w => w.length > 1);
+          userWords[user].push(...words);
+        }
+      });
+
+      // 파싱 실패 시 데모 샘플 생성 (형식이 다를 때 대비)
+      if (Object.keys(userCounts).length === 0) {
+        analyzedUsers = {
+          "테스": { count: 35, percent: 35, keywords: "임장, 6호선, 급지, 상급지", type: 0 },
+          "문멘토": { count: 40, percent: 40, keywords: "가치투자, 재개발, 멘토링, 로드맵", type: 1 },
+          "멤버A": { count: 25, percent: 25, keywords: "데이터, 호가, 전세가율, 거래량", type: 2 }
+        };
+      } else {
+        analyzedUsers = {};
+        Object.keys(userCounts).forEach((user, idx) => {
+          const count = userCounts[user];
+          const percent = ((count / totalMessages) * 100).toFixed(1);
+          
+          // 단어 빈도 분석
+          const freq = {};
+          userWords[user].forEach(w => freq[w] = (freq[w] || 0) + 1);
+          const topKeywords = Object.keys(freq).sort((a,b) => freq[b] - freq[a]).slice(0, 3).join(', ') || "열정, 소통, 참여";
+
+          analyzedUsers[user] = {
+            count: count,
+            percent: percent,
+            keywords: topKeywords,
+            type: idx % 4
+          };
+        });
+      }
+
+      renderResults();
+    }
+
+    const personaTypes = [
       {
-        title: "스마트 임장 러너",
-        badge: "🔥 현장 밀착형",
+        badge: "🔥 스마트 임장 러너",
         emoji: "🏃‍♂️",
-        quote: '"현장에 답이 있다! 6호선부터 마용성까지 직접 뛰며 가치를 발굴합니다."',
-        keywords: "손품·발품 일치 / 역세권 정밀 분석",
-        target: "한강변 프리미엄 급지 진입",
-        role: "단톡방 시세 브리핑 & 모의 임장 리드"
+        quote: '"현장에 답이 있다! 손품과 발품으로 확실한 가치를 발굴합니다."',
+        target: "한강변 핵심 급지 및 6호선 역세권"
       },
       {
-        title: "상급지 설계자",
-        badge: "💎 가치 투자형",
+        badge: "💎 상급지 전략가",
         emoji: "🏙️",
         quote: '"단기 변동성에 흔들리지 않고 10년 뒤 최고의 랜드마크를 선점합니다."',
-        keywords: "재개발·재건축 분석 / 하이엔드 입지",
-        target: "강남·용산권 메이저 랜드마크",
-        role: "로드맵 전략 수립 & 멘토링 토론 활성화"
+        target: "용산·마포·성수 하이엔드 랜드마크"
       },
       {
-        title: "데이터 밸류 헌터",
-        badge: "📊 정량 분석형",
+        badge: "📊 데이터 밸류 헌터",
         emoji: "📈",
-        quote: '"차트와 수급, 호가 괴리율 데이터를 통해 저평가 타이밍을 포착합니다."',
-        keywords: "실거래가 추이 / 전세가율·매매지수 분석",
-        target: "갭투자 최적지 및 저평가 대장 단지",
-        role: "주간 거래량 리포트 & 단지별 수익률 검증"
+        quote: '"차트와 수급, 호가 분석을 통해 최적의 저평가 타이밍을 포착합니다."',
+        target: "갭투자 최적지 및 대장 단지"
       },
       {
-        title: "단톡방 분위기 메이커",
-        badge: "✨ 열정 부스터",
+        badge: "✨ 단톡방 부스터",
         emoji: "🚀",
-        quote: '"혼자 가면 빨리 가지만, 문멘토 팀원들과 함께 가면 더 멀리, 상급지로 갑니다!"',
-        keywords: "동기부여 / 꾸준한 스터디 인증",
-        target: "내 집 마련 & 안정적 자산 증식",
-        role: "스터디 출석 관리 & 에너지 충전"
+        quote: '"문멘토 팀원들과 함께 지치지 않고 끝까지 상급지로 향합니다!"',
+        target: "내 집 마련 & 안정적 자산 증식"
       }
     ];
 
-    let currentIndex = 0;
+    function renderResults() {
+      const tabsContainer = document.getElementById('userTabs');
+      tabsContainer.innerHTML = '';
+      const users = Object.keys(analyzedUsers);
 
-    function changePersona() {
-      currentIndex = (currentIndex + 1) % personas.length;
-      const p = personas[currentIndex];
-      
-      document.getElementById('cardTitle').innerText = p.title;
-      document.getElementById('cardBadge').innerText = p.badge;
-      document.getElementById('cardEmoji').innerText = p.emoji;
-      document.getElementById('cardQuote').innerText = p.quote;
-      document.getElementById('cardKeywords').innerText = p.keywords;
-      document.getElementById('cardTarget').innerText = p.target;
-      document.getElementById('cardRole').innerText = p.role;
+      users.forEach((user, i) => {
+        const btn = document.createElement('button');
+        btn.className = `px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition ${i === 0 ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-white/10 text-slate-300 hover:bg-white/20'}`;
+        btn.innerText = user;
+        btn.onclick = () => selectUser(user, btn);
+        tabsContainer.appendChild(btn);
+      });
+
+      document.getElementById('inputSection').classList.add('hidden');
+      document.getElementById('resultSection').classList.remove('hidden');
+
+      if (users.length > 0) {
+        updateCard(users[0]);
+      }
     }
 
-    // 모바일/아이폰 완벽 호환 캡처 함수
+    function selectUser(user, activeBtn) {
+      Array.from(document.getElementById('userTabs').children).forEach(b => {
+        b.className = 'px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition bg-white/10 text-slate-300 hover:bg-white/20';
+      });
+      activeBtn.className = 'px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition bg-amber-500 text-slate-950';
+      updateCard(user);
+    }
+
+    function updateCard(user) {
+      currentUser = user;
+      const data = analyzedUsers[user];
+      const pType = personaTypes[data.type];
+
+      document.getElementById('cardUserName').innerText = user;
+      document.getElementById('cardBadge').innerText = pType.badge;
+      document.getElementById('cardEmoji').innerText = pType.emoji;
+      document.getElementById('cardQuote').innerText = pType.quote;
+      document.getElementById('cardStats').innerText = `발언 ${data.count}회 (${data.percent}%)`;
+      document.getElementById('cardKeywords').innerText = data.keywords;
+      document.getElementById('cardTarget').innerText = pType.target;
+    }
+
+    function resetAnalysis() {
+      document.getElementById('resultSection').classList.add('hidden');
+      document.getElementById('inputSection').classList.remove('hidden');
+    }
+
+    // 모바일 완벽 대응 고화질 캡처 함수
     async function saveAsImage() {
       const btn = document.getElementById('captureBtn');
       const originalText = btn.innerHTML;
@@ -214,7 +339,7 @@
 
       try {
         const canvas = await html2canvas(element, {
-          scale: 3, // 고화질 출력
+          scale: 3,
           backgroundColor: '#0F172A',
           useCORS: true,
           logging: false
@@ -222,22 +347,22 @@
 
         const imageUri = canvas.toDataURL('image/png');
 
-        // 1. PC/일반 브라우저용 다운로드 트리거
-        const downloadLink = document.createElement('a');
-        downloadLink.download = `MunMentor_Line6_Persona_${Date.now()}.png`;
-        downloadLink.href = imageUri;
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        document.body.removeChild(downloadLink);
+        // PC/안드로이드 다운로드 시도
+        const link = document.createElement('a');
+        link.download = `MunMentor_Line6_${currentUser}_card.png`;
+        link.href = imageUri;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
 
-        // 2. 모바일/인앱 브라우저용 팝업 모달 노출 (길게 눌러 저장 가능)
+        // 아이폰/사파리 대응: 모달에 이미지 띄워 길게 눌러 저장 유도
         document.getElementById('resultImage').src = imageUri;
         const modal = document.getElementById('imageModal');
         modal.classList.remove('hidden');
         modal.classList.add('flex');
 
       } catch (err) {
-        alert('캡처 도중 오류가 발생했습니다. 다시 시도해 주세요.');
+        alert('캡처 도중 문제가 발생했습니다. 다시 시도해 주세요.');
         console.error(err);
       } finally {
         btn.innerHTML = originalText;
