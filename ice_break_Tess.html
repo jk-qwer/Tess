@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>문멘토 6호선 프로젝트 - 카톡 대화 분석 & 페르소나</title>
+  <title>문멘토 6호선 프로젝트 - 종합 대화 분석기</title>
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -88,7 +88,7 @@
       </button>
     </section>
 
-    <!-- 2단계: 결과 섹션 (분석 완료 시 노출) -->
+    <!-- 2단계: 결과 섹션 -->
     <section id="resultSection" class="hidden space-y-4">
       
       <!-- 보기 전환: 개인별 요약 카드 vs 전체 비교 표 -->
@@ -119,7 +119,7 @@
             🏎️ 자동차
           </button>
           <button id="tabModeAnimal" onclick="switchMode('animal')" class="py-2 rounded-xl text-xs font-semibold transition bg-white/10 text-slate-300 hover:bg-white/20">
-            🦁 동물상
+            🦫 동물상
           </button>
           <button id="tabModeSNS" onclick="switchMode('sns')" class="py-2 rounded-xl text-xs font-semibold transition bg-white/10 text-slate-300 hover:bg-white/20">
             📸 SNS
@@ -150,7 +150,7 @@
           <div class="space-y-2 my-4 text-xs">
             <div class="flex justify-between items-center bg-black/40 p-2.5 rounded-xl border border-white/5">
               <span id="label1" class="text-slate-400">📊 대화 점유율</span>
-              <span id="val1" class="font-semibold text-slate-100">발언 42회 (18.5%)</span>
+              <span id="val1" class="font-semibold text-slate-100">발언 42회 (38.2%)</span>
             </div>
             <div class="flex justify-between items-center bg-black/40 p-2.5 rounded-xl border border-white/5">
               <span id="label2" class="text-slate-400">💡 주요 키워드</span>
@@ -164,7 +164,7 @@
 
           <div class="pt-3 border-t border-white/10 flex justify-between items-center text-[10px] text-slate-400">
             <span>Developed by Tess</span>
-            <span>With Mun Mentor Real Estate</span>
+            <span>With Mun Mentor & Line 6</span>
           </div>
         </div>
 
@@ -175,7 +175,6 @@
 
       <!-- [B] 전체 내용 비교표 뷰 -->
       <div id="tableViewContainer" class="hidden space-y-4">
-        <!-- 캡처 대상: 전체 표 -->
         <div id="captureAreaTable" class="glass-box rounded-3xl p-5 shadow-2xl overflow-x-auto bg-slate-900 border border-amber-500/30 text-white">
           <div class="border-b border-white/10 pb-3 mb-3 flex justify-between items-center">
             <div>
@@ -191,7 +190,7 @@
                 <th class="py-2 px-2">발언(점유율)</th>
                 <th class="py-2 px-2">🏛️ 부동산</th>
                 <th class="py-2 px-2">🏎️ 드림카</th>
-                <th class="py-2 px-2">🦁 동물상</th>
+                <th class="py-2 px-2">🦫 동물상</th>
                 <th class="py-2 px-2">주요 키워드</th>
               </tr>
             </thead>
@@ -249,7 +248,6 @@
     let currentMode = "realestate";
     let currentView = "card";
 
-    // 1. 텍스트 파일 불러오기
     function handleTextFileUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -260,7 +258,6 @@
       reader.readAsText(file);
     }
 
-    // 2. 다중 사진 OCR 판독
     async function handleMultipleImageUpload(event) {
       const files = event.target.files;
       if (!files || files.length === 0) return;
@@ -291,7 +288,6 @@
       }
     }
 
-    // 3. 대화 파싱 및 통계 분석
     function analyzeChat() {
       const text = document.getElementById('chatInput').value.trim();
       if (!text) {
@@ -324,7 +320,6 @@
         }
       });
 
-      // 예외/데모 처리
       if (Object.keys(userCounts).length === 0) {
         analyzedUsers = {
           "테스": { count: 42, percent: 38.2, keywords: "임장, 6호선, 급매, 상급지", idx: 0 },
@@ -353,7 +348,7 @@
       renderResults();
     }
 
-    // 모드별 성향 사전
+    // 테스님 원본 매칭 데이터 (타이칸 · 비버 완벽 반영)
     const modesData = {
       realestate: [
         { badge: "🔥 스마트 임장 러너", emoji: "🏃‍♂️", quote: '"현장에 답이 있다! 손품과 발품으로 가치를 발굴합니다."', label1: "📊 대화 점유율", label2: "💡 주요 키워드", label3: "🎯 핵심 추천지", target: "한강변 핵심 급지 & 6호선 역세권", tag: "REAL ESTATE PERSONA" },
@@ -362,16 +357,16 @@
         { badge: "✨ 열정 부스터", emoji: "🚀", quote: '"문멘토 팀원들과 함께 끝까지 상급지로 향합니다!"', label1: "📊 대화 점유율", label2: "💡 주요 키워드", label3: "🎯 핵심 추천지", target: "내 집 마련 & 안정적 자산 증식", tag: "REAL ESTATE PERSONA" }
       ],
       car: [
-        { badge: "🏎️ 포르쉐 911 (스피드)", emoji: "🏎️", quote: '"상급지 목표를 향해 가장 날렵하고 강력하게 질주합니다."', label1: "⚡ 가속 반응도", label2: "🔧 핵심 퍼포먼스", label3: "🏁 매칭 드림카", target: "Porsche 911 GT3 / 고출력 스포츠카", tag: "CAR & DRIVING PERSONA" },
-        { badge: "🚙 메르세데스 G바겐", emoji: "🚙", quote: '"어떤 부동산 하락장도 묵직하고 단단하게 돌파합니다."', label1: "🛡️ 험로 돌파력", label2: "🔧 핵심 퍼포먼스", label3: "🏁 매칭 드림카", target: "Mercedes-AMG G 63 / 럭셔리 SUV", tag: "CAR & DRIVING PERSONA" },
-        { badge: "⚡ 테슬라 모델 S 플래드", emoji: "⚡", quote: '"데이터와 오토파일럿처럼 오차 없이 최적 입지를 계산합니다."', label1: "🤖 AI 데이터 싱크", label2: "🔧 핵심 퍼포먼스", label3: "🏁 매칭 드림카", target: "Tesla Model S Plaid / 하이테크 EV", tag: "CAR & DRIVING PERSONA" },
-        { badge: "👑 롤스로이스 고스트", emoji: "👑", quote: '"최고의 안락함과 품격으로 자산의 정점에 도달합니다."', label1: "✨ 승차감 & 품격", label2: "🔧 핵심 퍼포먼스", label3: "🏁 매칭 드림카", target: "Rolls-Royce Ghost / 플래그십 세단", tag: "CAR & DRIVING PERSONA" }
+        { badge: "⚡ 포르쉐 타이칸 (하이테크 드라이버)", emoji: "⚡", quote: '"전기차처럼 즉각적인 토크와 폭발적인 실행력으로 상급지를 향합니다."', label1: "⚡ 순간 가속력", label2: "🔧 핵심 퍼포먼스", label3: "🏁 매칭 드림카", target: "Porsche Taycan Turbo S / 고성능 EV", tag: "CAR & DRIVING PERSONA" },
+        { badge: "🚙 메르세데스 G바겐 (오프로드 정복자)", emoji: "🚙", quote: '"어떤 부동산 하락장과 험로도 묵직하고 단단하게 돌파합니다."', label1: "🛡️ 험로 돌파력", label2: "🔧 핵심 퍼포먼스", label3: "🏁 매칭 드림카", target: "Mercedes-AMG G 63 / 럭셔리 SUV", tag: "CAR & DRIVING PERSONA" },
+        { badge: "🏎️ 포르쉐 911 GT3 (트랙 헌터)", emoji: "🏎️", quote: '"가장 예리한 코너링과 날렵한 감각으로 최적의 타이밍을 낚아챕니다."', label1: "🏁 코너링 제어력", label2: "🔧 핵심 퍼포먼스", label3: "🏁 매칭 드림카", target: "Porsche 911 GT3 / 퓨어 스포츠카", tag: "CAR & DRIVING PERSONA" },
+        { badge: "👑 롤스로이스 고스트 (하이엔드 리더)", emoji: "👑", quote: '"최고의 안락함과 품격으로 자산의 정점에 도달합니다."', label1: "✨ 승차감 & 품격", label2: "🔧 핵심 퍼포먼스", label3: "🏁 매칭 드림카", target: "Rolls-Royce Ghost / 플래그십 세단", tag: "CAR & DRIVING PERSONA" }
       ],
       animal: [
-        { badge: "🦁 열정 리더 사자", emoji: "🦁", quote: '"목표를 정하면 팀을 이끌고 가장 먼저 임장지로 뛰어갑니다."', label1: "🔥 에너지 지수", label2: "🐾 대표 성향", label3: "🤝 파트너 동물", target: "철저한 계획형 여우 🦊", tag: "ANIMAL PERSONA" },
-        { badge: "🦉 신중 분석 올빼미", emoji: "🦉", quote: '"빅데이터와 실거래가를 밤새 정밀하게 대조·분석합니다."', label1: "🧠 분석 싱크로율", label2: "🐾 대표 성향", label3: "🤝 파트너 동물", target: "행동대장 사자 🦁", tag: "ANIMAL PERSONA" },
-        { badge: "🦊 기민한 밸류 여우", emoji: "🦊", quote: '"저평가된 알짜 급매물을 한눈에 꿰뚫어 봅니다."', label1: "⚡ 기회 포착력", label2: "🐾 대표 성향", label3: "🤝 파트너 동물", target: "든든한 불곰 🐻", tag: "ANIMAL PERSONA" },
-        { badge: "🐻 묵직한 가치 불곰", emoji: "🐻", quote: '"묵직하게 우량 자산을 쥐고 흔들림 없이 버팁니다."', label1: "🛡️ 멘탈 내구도", label2: "🐾 대표 성향", label3: "🤝 파트너 동물", target: "날카로운 올빼미 🦉", tag: "ANIMAL PERSONA" }
+        { badge: "🦫 성실한 설계자 비버", emoji: "🦫", quote: '"묵묵히 튼튼한 댐을 쌓듯, 탄탄하고 흔들림 없는 자산 포트폴리오를 구축합니다."', label1: "🏗️ 기초 설계력", label2: "🐾 대표 성향", label3: "🤝 꿀조합 파트너", target: "추진력 사자 🦁", tag: "ANIMAL PERSONA" },
+        { badge: "🦁 열정적인 리더 사자", emoji: "🦁", quote: '"목표를 정하면 팀을 이끌고 가장 먼저 임장지로 뛰어갑니다."', label1: "🔥 에너지 지수", label2: "🐾 대표 성향", label3: "🤝 꿀조합 파트너", target: "성실한 비버 🦫", tag: "ANIMAL PERSONA" },
+        { badge: "🦉 신중한 분석가 올빼미", emoji: "🦉", quote: '"빅데이터와 실거래가를 밤새 정밀하게 대조·분석합니다."', label1: "🧠 분석 싱크로율", label2: "🐾 대표 성향", label3: "🤝 꿀조합 파트너", target: "기민한 여우 🦊", tag: "ANIMAL PERSONA" },
+        { badge: "🦊 기민한 밸류 여우", emoji: "🦊", quote: '"저평가된 알짜 급매물을 한눈에 꿰뚫어 봅니다."', label1: "⚡ 기회 포착력", label2: "🐾 대표 성향", label3: "🤝 꿀조합 파트너", target: "든든한 불곰 🐻", tag: "ANIMAL PERSONA" }
       ],
       sns: [
         { badge: "📸 #임장스타그램", emoji: "☕", quote: '"주말마다 임장 챌린지 인증 완료! ☕ #오운완 #임장완"', label1: "📱 인스타 무드", label2: "🏷️ 해시태그", label3: "✨ 피드 콘셉트", target: "#임장브이로그 #6호선정복", tag: "INSTA FEED STYLE" },
@@ -390,18 +385,16 @@
       const users = Object.keys(analyzedUsers);
 
       users.forEach((user, i) => {
-        // 카드 탭 버튼 생성
         const btn = document.createElement('button');
         btn.className = `px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition ${i === 0 ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-white/10 text-slate-300 hover:bg-white/20'}`;
         btn.innerText = user;
         btn.onclick = () => selectUser(user, btn);
         tabsContainer.appendChild(btn);
 
-        // 전체 표 행 생성
         const data = analyzedUsers[user];
         const re = modesData.realestate[data.idx].badge;
         const car = modesData.car[data.idx].badge.split(' ')[1];
-        const animal = modesData.animal[data.idx].badge.split(' ')[0];
+        const animal = modesData.animal[data.idx].badge.split(' ')[1];
 
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -477,7 +470,7 @@
       document.getElementById('cardQuote').innerText = p.quote;
 
       document.getElementById('label1').innerText = p.label1;
-      document.getElementById('val1').innerText = (currentMode === 'realestate') ? `발언 ${data.count}회 (${data.percent}%)` : (currentMode === 'car' ? '최고 속도 모드 ON' : (currentMode === 'animal' ? '98.5% 일치' : '트렌디 감성 100%'));
+      document.getElementById('val1').innerText = (currentMode === 'realestate') ? `발언 ${data.count}회 (${data.percent}%)` : (currentMode === 'car' ? '100% 하이테크 반응속도' : (currentMode === 'animal' ? '99.9% 싱크로율' : '트렌디 감성 100%'));
 
       document.getElementById('label2').innerText = p.label2;
       document.getElementById('val2').innerText = data.keywords;
@@ -491,7 +484,6 @@
       document.getElementById('inputSection').classList.remove('hidden');
     }
 
-    // 4. 고화질 캡처 & 즉시 다운로드 함수들
     async function captureAndDownload(elementId, filename) {
       const element = document.getElementById(elementId);
       try {
@@ -504,7 +496,6 @@
 
         const imageUri = canvas.toDataURL('image/png');
 
-        // 다운로드 시도
         const link = document.createElement('a');
         link.download = `${filename}.png`;
         link.href = imageUri;
@@ -512,7 +503,6 @@
         link.click();
         document.body.removeChild(link);
 
-        // 사파리 모바일 대응 팝업
         document.getElementById('resultImage').src = imageUri;
         const modal = document.getElementById('imageModal');
         modal.classList.remove('hidden');
